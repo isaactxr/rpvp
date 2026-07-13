@@ -173,6 +173,29 @@ async function iniciar() {
        WHERE cpf IS NOT NULL`
     );
 
+    console.log('[server] Garantindo estrutura de faces de usuarios...');
+    await db.query(
+      `CREATE TABLE IF NOT EXISTS usuarios_faces (
+         id SERIAL PRIMARY KEY,
+         usuario_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+         face BYTEA NOT NULL,
+         embedding DOUBLE PRECISION[],
+         content_type VARCHAR(100) NOT NULL DEFAULT 'image/jpeg',
+         atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+       )`
+    );
+
+    await db.query(
+      `CREATE INDEX IF NOT EXISTS idx_usuarios_faces_usuario_id
+       ON usuarios_faces (usuario_id)`
+    );
+
+    await db.query(
+      `CREATE INDEX IF NOT EXISTS idx_usuarios_faces_embedding_not_null
+       ON usuarios_faces (usuario_id)
+       WHERE embedding IS NOT NULL`
+    );
+
     await db.query(
       `CREATE TABLE IF NOT EXISTS sessoes_autenticacao (
          id BIGSERIAL PRIMARY KEY,

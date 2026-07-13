@@ -265,6 +265,32 @@ CREATE TABLE public.usuarios (
 ALTER TABLE public.usuarios OWNER TO vianapeixoto;
 
 --
+-- Name: usuarios_faces; Type: TABLE; Schema: public; Owner: vianapeixoto
+--
+
+CREATE TABLE public.usuarios_faces (
+    id integer NOT NULL,
+    usuario_id integer NOT NULL,
+    face bytea NOT NULL,
+    embedding double precision[],
+    content_type character varying(100) DEFAULT 'image/jpeg'::character varying NOT NULL,
+    atualizado_em timestamp without time zone DEFAULT CURRENT_TIMESTAMP
+);
+
+ALTER TABLE public.usuarios_faces OWNER TO vianapeixoto;
+
+CREATE SEQUENCE public.usuarios_faces_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE public.usuarios_faces_id_seq OWNER TO vianapeixoto;
+ALTER SEQUENCE public.usuarios_faces_id_seq OWNED BY public.usuarios_faces.id;
+
+--
 -- Name: usuarios_id_seq; Type: SEQUENCE; Schema: public; Owner: vianapeixoto
 --
 
@@ -326,6 +352,13 @@ ALTER TABLE ONLY public.tipos_sessao ALTER COLUMN id SET DEFAULT nextval('public
 --
 
 ALTER TABLE ONLY public.usuarios ALTER COLUMN id SET DEFAULT nextval('public.usuarios_id_seq'::regclass);
+
+
+--
+-- Name: usuarios_faces id; Type: DEFAULT; Schema: public; Owner: vianapeixoto
+--
+
+ALTER TABLE ONLY public.usuarios_faces ALTER COLUMN id SET DEFAULT nextval('public.usuarios_faces_id_seq'::regclass);
 
 
 --
@@ -512,6 +545,14 @@ ALTER TABLE ONLY public.usuarios
 
 
 --
+-- Name: usuarios_faces usuarios_faces_pkey; Type: CONSTRAINT; Schema: public; Owner: vianapeixoto
+--
+
+ALTER TABLE ONLY public.usuarios_faces
+    ADD CONSTRAINT usuarios_faces_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: usuarios usuarios_subject_compreface_key; Type: CONSTRAINT; Schema: public; Owner: vianapeixoto
 --
 
@@ -660,6 +701,20 @@ CREATE INDEX idx_usuarios_usuario_lower ON public.usuarios USING btree (lower((u
 
 
 --
+-- Name: idx_usuarios_faces_usuario_id; Type: INDEX; Schema: public; Owner: vianapeixoto
+--
+
+CREATE INDEX idx_usuarios_faces_usuario_id ON public.usuarios_faces USING btree (usuario_id);
+
+
+--
+-- Name: idx_usuarios_faces_embedding_not_null; Type: INDEX; Schema: public; Owner: vianapeixoto
+--
+
+CREATE INDEX idx_usuarios_faces_embedding_not_null ON public.usuarios_faces USING btree (usuario_id) WHERE (embedding IS NOT NULL);
+
+
+--
 -- Name: presencas_imagens presencas_imagens_presenca_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vianapeixoto
 --
 
@@ -707,6 +762,14 @@ ALTER TABLE ONLY public.usuarios
     ADD CONSTRAINT usuarios_setor_id_fkey FOREIGN KEY (setor_id) REFERENCES public.setores(id) ON DELETE SET NULL;
 
 
+--
+-- Name: usuarios_faces usuarios_faces_usuario_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vianapeixoto
+--
+
+ALTER TABLE ONLY public.usuarios_faces
+    ADD CONSTRAINT usuarios_faces_usuario_id_fkey FOREIGN KEY (usuario_id) REFERENCES public.usuarios(id) ON DELETE CASCADE;
+
+
 
 --
 -- Name: SCHEMA public; Type: ACL; Schema: -; Owner: vianapeixoto
@@ -719,4 +782,3 @@ GRANT ALL ON SCHEMA public TO PUBLIC;
 --
 -- PostgreSQL database dump complete
 --
-
