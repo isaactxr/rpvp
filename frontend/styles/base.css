@@ -1,0 +1,25 @@
+/* Tokens e estilos-base compartilhados por todas as páginas do frontend. */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+:root {
+  --bg-start: #0f172a;
+  --bg-end: #1a1f3a;
+  --page-fixed-width: 1280px;
+  --page-max-width: 1280px;
+  --card: rgba(15, 23, 42, 0.84);
+  --border: rgba(217, 119, 6, 0.3);
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --accent: #D97706;
+  --accent-strong: #EA8C1D;
+  --success: #22c55e;
+  --surface-soft: rgba(15, 23, 42, 0.62);
+  --surface-strong: rgba(15, 23, 42, 0.92);
+}
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}

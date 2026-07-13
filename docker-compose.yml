@@ -1,0 +1,88 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: rpvp-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      TZ: America/Sao_Paulo
+      PGTZ: America/Sao_Paulo
+    ports:
+      - "55433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vianapeixoto -d rpvp"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate --edge-ip-version 4 run
+    environment:
+       TUNNEL_TOKEN: ${TUNNEL_TOKEN}
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: rpvp-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: 3000
+      HOST: 0.0.0.0
+      APP_TIMEZONE: America/Sao_Paulo
+      TRUST_PROXY: ${TRUST_PROXY:-1}
+      CORS_ORIGINS: ${CORS_ORIGINS:?Defina CORS_ORIGINS com os dominios permitidos}
+
+      COMPREFACE_URL: ${COMPREFACE_URL:-http://localhost:8000}
+      COMPREFACE_API_KEY: ${COMPREFACE_API_KEY:?Defina COMPREFACE_API_KEY no arquivo .env}
+      COMPREFACE_SIMILARITY_THRESHOLD: ${COMPREFACE_SIMILARITY_THRESHOLD:-0.92}
+      COMPREFACE_TIMEOUT_MS: ${COMPREFACE_TIMEOUT_MS:-10000}
+
+      AUTH_TOKEN_TTL_HOURS: ${AUTH_TOKEN_TTL_HOURS:-12}
+      AUTH_PASSWORD_SALT: ${AUTH_PASSWORD_SALT:?Defina AUTH_PASSWORD_SALT no arquivo .env}
+      INITIAL_ADMIN_NAME: ${INITIAL_ADMIN_NAME:-Viana Peixoto}
+      INITIAL_ADMIN_USER: ${INITIAL_ADMIN_USER:-viana.peixoto}
+      INITIAL_ADMIN_PASSWORD: ${INITIAL_ADMIN_PASSWORD:?Defina INITIAL_ADMIN_PASSWORD no arquivo .env}
+      ALLOW_BOOTSTRAP_ADMIN: ${ALLOW_BOOTSTRAP_ADMIN:-false}
+      PRESENCE_COOLDOWN_MS: ${PRESENCE_COOLDOWN_MS:-10000}
+      RATE_LIMIT_AUTH_WINDOW_MS: ${RATE_LIMIT_AUTH_WINDOW_MS:-900000}
+      RATE_LIMIT_AUTH_MAX: ${RATE_LIMIT_AUTH_MAX:-15}
+      RATE_LIMIT_RECOGNIZE_WINDOW_MS: ${RATE_LIMIT_RECOGNIZE_WINDOW_MS:-60000}
+      RATE_LIMIT_RECOGNIZE_MAX: ${RATE_LIMIT_RECOGNIZE_MAX:-30}
+
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_SCHEMA: public
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: rpvp-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      FRONTEND_HOST: 0.0.0.0
+      FRONTEND_PORT: 8080
+      BACKEND_TARGET: http://backend:3000
+      FRONTEND_API_BASE: /api
+    ports:
+      - "8080:8080"
+
+volumes:
+  postgres_data:

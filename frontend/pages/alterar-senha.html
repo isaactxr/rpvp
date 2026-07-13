@@ -1,0 +1,34 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <title>Alterar senha - Laboral</title>
+  <link rel="stylesheet" href="../styles/base.css?v=20260422a" />
+  <link rel="stylesheet" href="../styles/login.css?v=20260331a" />
+</head>
+<body data-layout="auth" data-auth-title="Troca de senha obrigatória">
+  <main data-layout-content>
+      <form id="alterarSenhaForm" class="login-form">
+        <label>
+          <span>Nova senha</span>
+          <input id="novaSenha" type="password" minlength="6" autocomplete="new-password" required />
+        </label>
+        <label>
+          <span>Confirmar nova senha</span>
+          <input id="confirmarSenha" type="password" minlength="6" autocomplete="new-password" required />
+        </label>
+        <button id="submitBtn" type="submit">Salvar nova senha</button>
+      </form>
+
+      <p id="feedback" class="feedback">Por segurança, altere sua senha antes de acessar o sistema.</p>
+  </main>
+
+  <script src="../scripts/auth.js?v=20260426b"></script>
+  <script src="../components/auth-layout.js?v=20260422a"></script>
+  <script src="../scripts/alterar-senha.js?v=20260331a"></script>
+</body>
+</html>
+
+
+

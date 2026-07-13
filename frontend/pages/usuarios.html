@@ -1,0 +1,230 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <title>Usuários - Laboral</title>
+  <link rel="stylesheet" href="../styles/base.css?v=20260422a" />
+  <link rel="stylesheet" href="../styles/registros.css?v=20260408a" />
+</head>
+<body data-layout="internal" data-nav-key="usuarios" data-page-title="Gestão de usuários" data-page-subtitle="Cadastro, sincronização com o CompreFace e gerenciamento da coleção facial.">
+  <main data-layout-content>
+      <section class="card">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow">CompreFace</span>
+            <h2>Face Collection</h2>
+          </div>
+          <span id="usuariosStatus" class="muted-text">Selecione um usuário para gerenciar a coleção facial no estilo do CompreFace.</span>
+        </div>
+
+        <div class="collection-shell">
+          <aside class="subjects-panel">
+            <div class="subjects-panel-header">
+              <h3>Subjects</h3>
+              <input id="usuariosSearch" type="search" placeholder="Buscar usuário..." />
+            </div>
+
+            <div id="subjectsList" class="subjects-list">
+              <p class="muted-text">Carregando usuários...</p>
+            </div>
+
+            <div class="subjects-panel-footer">
+              <button id="voltarSetoresBtn" type="button" class="ghost-btn hidden">Voltar para setores</button>
+              <button id="refreshBtn" type="button" class="ghost-btn">Atualizar lista</button>
+              <button id="openCadastroModalBtn" type="button" class="primary-btn">Criar usuário</button>
+            </div>
+          </aside>
+
+          <section class="collection-panel">
+            <div class="collection-panel-header">
+              <div>
+                <h2 id="colecaoTitulo">Coleção facial</h2>
+                <p id="colecaoStatus" class="muted-text">Selecione um usuário para visualizar as faces cadastradas no CompreFace.</p>
+              </div>
+              <div class="collection-counter">
+                <strong id="colecaoContador">0</strong>
+                <span>imagens</span>
+              </div>
+            </div>
+
+            <label id="dropzoneLabel" class="dropzone-card is-disabled" for="colecaoFotosInput">
+              <input id="colecaoFotosInput" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden />
+              <strong>Clique aqui ou arraste as imagens</strong>
+              <span>Envie novas fotos para a coleção facial do usuário selecionado.</span>
+            </label>
+
+            <div class="form-actions collection-actions">
+              <button id="colecaoUploadBtn" type="button" class="primary-btn" disabled>Enviar fotos</button>
+              <button id="colecaoRefreshBtn" type="button" class="ghost-btn" disabled>Atualizar coleção</button>
+              <button id="colecaoLimparBtn" type="button" class="ghost-btn" disabled>Limpar coleção</button>
+            </div>
+
+            <div id="colecaoGrid" class="faces-grid top-space faces-grid-large">
+              <p class="muted-text">Nenhum usuário selecionado.</p>
+            </div>
+
+            <section id="usuarioSelecionadoPanel" class="card top-space">
+              <div class="section-head">
+                <div>
+                  <span class="eyebrow">Admin</span>
+                  <h2>Usuário selecionado</h2>
+                </div>
+                <span id="usuarioSelecionadoStatus" class="muted-text">Selecione um usuário no Face Collection para gerenciar.</span>
+              </div>
+
+              <form id="usuarioAdminForm" class="session-form">
+                <label>
+                  <span>Nome</span>
+                  <input id="adminNome" type="text" readonly />
+                </label>
+                <label>
+                  <span>CPF</span>
+                  <input id="adminCpf" type="text" maxlength="14" placeholder="Somente números" />
+                </label>
+                <label>
+                  <span>Usuário</span>
+                  <input id="adminUsuario" type="text" readonly />
+                </label>
+                <label>
+                  <span>Perfil</span>
+                  <select id="adminPerfil"></select>
+                </label>
+                <label>
+                  <span>Ativo</span>
+                  <select id="adminAtivo">
+                    <option value="true">Ativo</option>
+                    <option value="false">Inativo</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Gestor</span>
+                  <select id="adminGestor">
+                    <option value="">Sem gestor</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Setor</span>
+                  <select id="adminSetor">
+                    <option value="">Sem setor</option>
+                  </select>
+                </label>
+                <div class="field-span-2 form-actions admin-user-actions">
+                  <button id="adminSalvarBtn" type="submit" class="btn-save" disabled>Salvar alterações</button>
+                  <div class="admin-secondary-actions">
+                    <button id="adminResetSenhaBtn" type="button" class="ghost-btn" disabled>Resetar senha</button>
+                    <button id="adminExcluirBtn" type="button" class="danger-soft-btn" disabled>Excluir usuário</button>
+                  </div>
+                </div>
+              </form>
+            </section>
+          </section>
+        </div>
+      </section>
+  </main>
+
+  <div id="cadastroModal" class="modal-overlay hidden" aria-hidden="true">
+    <section class="modal-card card" role="dialog" aria-modal="true" aria-labelledby="cadastroModalTitulo">
+      <div class="section-head modal-head">
+        <div>
+          <span class="eyebrow">Admin</span>
+          <h2 id="cadastroModalTitulo">Criar novo usuário</h2>
+        </div>
+        <button id="closeCadastroModalBtn" type="button" class="ghost-btn">Fechar</button>
+      </div>
+
+      <form id="usuarioForm" class="session-form">
+        <label>
+          <span>Nome completo</span>
+          <input id="novoNome" type="text" required />
+        </label>
+        <label>
+          <span>CPF</span>
+          <input id="novoCpf" type="text" maxlength="14" placeholder="Somente números" />
+        </label>
+        <label>
+          <span>Usuário/login</span>
+          <input id="novoUsuario" type="text" required />
+        </label>
+        <label>
+          <span>Senha</span>
+          <input id="novoSenha" type="password" minlength="6" required />
+          <span class="field-check-note">
+            <span class="inline-check reset-inline-check">
+              <input id="novoResetPrimeiroAcesso" type="checkbox" />
+              <span>Reset no primeiro acesso</span>
+            </span>
+          </span>
+        </label>
+        <label>
+          <span>Função</span>
+          <select id="novoPerfil" required>
+            <option value="admin">Admin</option>
+            <option value="gestor">Gestor</option>
+            <option value="instrutor">Instrutor</option>
+            <option value="colaborador" selected>Colaborador</option>
+          </select>
+        </label>
+        <label id="gestorLabel">
+          <span>Gestor</span>
+          <input id="novoGestorNome" type="text" placeholder="Digite para buscar gestor" autocomplete="off" />
+          <input id="novoGestorId" type="hidden" />
+          <div id="novoGestorSugestoes" class="suggestions-list hidden"></div>
+        </label>
+        <label id="setorLabel">
+          <span>Setor</span>
+          <input id="novoSetor" type="text" placeholder="Digite para buscar ou cadastrar setor" autocomplete="off" />
+          <div id="novoSetorSugestoes" class="suggestions-list hidden"></div>
+        </label>
+        <label class="field-span-2">
+          <span>Fotos do usuário (opcional, múltiplas)</span>
+          <input id="novasFotos" type="file" accept="image/jpeg,image/png,image/webp" multiple />
+        </label>
+        <div class="field-span-2 form-actions">
+          <button id="criarUsuarioBtn" type="submit" class="primary-btn">Criar usuário</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <div id="resetSenhaModal" class="modal-overlay hidden" aria-hidden="true">
+    <section class="modal-box card" role="dialog" aria-modal="true" aria-labelledby="resetSenhaModalTitulo">
+      <div class="section-head modal-head">
+        <div>
+          <span class="eyebrow">Admin</span>
+          <h2 id="resetSenhaModalTitulo">Resetar senha de <span id="resetSenhaUsuarioNome">-</span></h2>
+        </div>
+        <button id="closeResetSenhaModalBtn" type="button" class="ghost-btn">Fechar</button>
+      </div>
+
+      <form id="resetSenhaForm" class="session-form compact-session-form">
+        <p id="resetSenhaDescricao" class="field-span-2 muted-text">Defina uma nova senha temporária para o usuário selecionado.</p>
+        <label class="field-span-2">
+          <span>Nova senha</span>
+          <input id="resetNovaSenha" type="password" minlength="6" placeholder="Digite a nova senha" required />
+        </label>
+        <label class="field-span-2">
+          <span>Confirmar nova senha</span>
+          <input id="resetConfirmarNovaSenha" type="password" minlength="6" placeholder="Digite novamente a nova senha" required />
+        </label>
+        <label class="field-span-2 reset-checkbox-block">
+          <span class="inline-check reset-inline-check">
+            <input id="resetPrimeiroAcessoModal" type="checkbox" />
+            <span>Solicitar troca no primeiro acesso</span>
+          </span>
+        </label>
+        <div class="field-span-2 form-actions">
+          <button id="confirmarResetSenhaBtn" type="submit" class="primary-btn">Confirmar reset</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <script src="../scripts/auth.js?v=20260426b"></script>
+  <script src="../components/internal-layout.js?v=20260426b"></script>
+  <script src="../scripts/usuarios.js?v=20260331d"></script>
+</body>
+</html>
+
+
+

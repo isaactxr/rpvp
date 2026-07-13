@@ -1,0 +1,34 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <title>Login - Laboral</title>
+  <link rel="stylesheet" href="../styles/base.css?v=20260422a" />
+  <link rel="stylesheet" href="../styles/login.css" />
+</head>
+<body data-layout="auth" data-auth-title="Registro de presença">
+  <main data-layout-content>
+      <form id="loginForm" class="login-form">
+        <label>
+          <span>Usuário</span>
+          <input id="usuario" type="text" autocomplete="username" required />
+        </label>
+        <label>
+          <span>Senha</span>
+          <input id="senha" type="password" autocomplete="current-password" minlength="6" required />
+        </label>
+        <button id="submitBtn" type="submit">Entrar</button>
+      </form>
+
+      <p id="feedback" class="feedback">Use suas credenciais cadastradas no sistema.</p>
+  </main>
+
+  <script src="../scripts/auth.js?v=20260426b"></script>
+  <script src="../components/auth-layout.js?v=20260422a"></script>
+  <script src="../scripts/login.js?v=20260331a"></script>
+</body>
+</html>
+
+
+

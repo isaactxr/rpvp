@@ -1,0 +1,103 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <title>Sessões - Laboral</title>
+  <link rel="stylesheet" href="../styles/base.css?v=20260422a" />
+  <link rel="stylesheet" href="../styles/registros.css?v=20260408a" />
+</head>
+<body data-layout="internal" data-nav-key="sessoes" data-page-title="Gestão de sessões" data-page-subtitle="Selecione uma sessão ativa para abrir a página operacional da sessão.">
+  <main data-layout-content>
+      <section class="card">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow">Sessões</span>
+            <h2>Lista de sessões ativas</h2>
+          </div>
+          <div class="section-head-actions">
+            <button id="abrirCriarSessaoBtn" type="button" class="primary-btn">Criar sessão</button>
+            <button id="refreshSessoesBtn" type="button" class="ghost-btn">Atualizar sessões</button>
+            <label id="mostrarEncerradasWrap" class="inline-toggle" for="mostrarEncerradasHojeChk">
+              <span>Mostrar sessões encerradas</span>
+              <span class="toggle-wrap">
+                <input type="checkbox" id="mostrarEncerradasHojeChk" class="toggle-input" />
+                <span class="toggle-label"></span>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <div id="encerradasFiltrosWrap" class="filters-grid hidden">
+          <label>
+            <span>Tipo da sessão</span>
+            <input id="filtroEncerradasTipo" list="filtroEncerradasTipoDatalist" type="text" placeholder="Todos os tipos" />
+            <datalist id="filtroEncerradasTipoDatalist"></datalist>
+          </label>
+          <label>
+            <span>Data inicial</span>
+            <input id="filtroEncerradasDataInicio" type="date" />
+          </label>
+          <label>
+            <span>Data final</span>
+            <input id="filtroEncerradasDataFim" type="date" />
+          </label>
+          <div class="filter-actions">
+            <button id="limparFiltrosEncerradasBtn" type="button" class="ghost-btn">Limpar filtros</button>
+          </div>
+        </div>
+
+        <p id="sessaoStatus" class="muted-text">Clique em uma sessão para abrir sua página específica.</p>
+        <div id="sessoesAtivasLista" class="chips-wrap top-space">
+          <span class="muted-text">Carregando sessões...</span>
+        </div>
+      </section>
+  </main>
+
+  <div id="criarSessaoModal" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+    <div class="modal-box card">
+      <h3>Criar sessão</h3>
+      <form id="sessaoForm" class="session-form">
+        <label class="field-span-2">
+          <span>Instrutor responsável (logado)</span>
+          <input id="sessaoInstrutorNome" type="text" readonly />
+        </label>
+        <label class="field-span-2">
+          <span>Tipo de sessão</span>
+          <input id="sessaoTipo" type="text" placeholder="Ex.: Laboral, Treinamento" autocomplete="off" required />
+          <div id="sessaoTipoSugestoes" class="suggestions-list hidden"></div>
+        </label>
+        <label class="field-span-2">
+          <span>Local (opcional)</span>
+          <input id="sessaoLocal" type="text" maxlength="180" placeholder="Sala multiuso" />
+        </label>
+        <label class="field-span-2">
+          <span>Descrição (opcional)</span>
+          <textarea id="sessaoDescricao" class="descricao-box" maxlength="500" placeholder="Detalhes sobre a sessão"></textarea>
+        </label>
+        <label id="sessaoCheckoutRow" class="field-span-2 config-toggle-row">
+          <div>
+            <strong>Habilitar check-out nesta sessão</strong>
+            <p class="muted-text field-hint">Ative apenas se esta sessão exigir saída facial.</p>
+          </div>
+          <div class="toggle-wrap">
+            <input type="checkbox" id="sessaoCheckoutHabilitado" class="toggle-input" />
+            <label for="sessaoCheckoutHabilitado" class="toggle-label"></label>
+          </div>
+        </label>
+        <div class="field-span-2 form-actions">
+          <button type="submit" class="primary-btn">Criar sessão</button>
+          <button id="cancelarCriarSessaoBtn" type="button" class="ghost-btn">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../scripts/auth.js?v=20260426b"></script>
+  <script src="../components/internal-layout.js?v=20260426b"></script>
+  <script src="../scripts/sessoes.js?v=20260409a"></script>
+</body>
+</html>
+
+
+

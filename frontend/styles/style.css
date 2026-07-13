@@ -1,0 +1,355 @@
+/* Estilos específicos da tela de verificação facial, complementando a base visual compartilhada em `registros.css`. */
+/* ═══════════════════════════════════════════════════════════════
+   Reset & base
+═══════════════════════════════════════════════════════════════ */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  /* layout handled by registros.css — only camera-specific overrides here */
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  width: 100%;
+  max-width: 1280px;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.user-badge-inline {
+  display: flex;
+  gap: 0.45rem;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.user-badge-inline span {
+  color: #94a3b8;
+  text-transform: capitalize;
+}
+
+.logo {
+  height: 60px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 12px rgba(217, 119, 6, 0.2));
+}
+
+.company-name {
+  font-size: clamp(1.5rem, 5vw, 2rem);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  background: linear-gradient(135deg, #D97706 0%, #EA8C1D 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.face-main {
+  width: 100%;
+  max-width: 980px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.sessao-page {
+  gap: 0.9rem;
+}
+
+#sessaoFaceCard .face-main {
+  max-width: none;
+  gap: 0.75rem;
+}
+
+#sessaoFaceCard .session-card {
+  padding: 0.78rem;
+}
+
+#sessaoFaceCard .video-wrapper {
+  width: min(100%, 980px);
+  max-height: 66vh;
+}
+
+#sessaoListaCard .table-wrap {
+  max-height: 34vh;
+  overflow: auto;
+}
+
+.subtitle {
+  font-size: clamp(1.1rem, 4vw, 1.5rem);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #e2e8f0;
+}
+
+.action-links {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.records-link,
+.session-refresh {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #D97706 0%, #EA8C1D 100%);
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 600;
+  padding: 0.6rem 1rem;
+  border-radius: 0.7rem;
+  box-shadow: 0 6px 18px rgba(217, 119, 6, 0.25);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.records-link:hover,
+.session-refresh:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(217, 119, 6, 0.35);
+}
+
+.session-card {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 1rem;
+  background: rgba(15, 23, 42, 0.78);
+  border: 1px solid rgba(217, 119, 6, 0.28);
+  box-shadow: inset 0 0 24px rgba(217, 119, 6, 0.06), 0 18px 35px rgba(0, 0, 0, 0.18);
+}
+
+.session-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.session-kicker {
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #fb923c;
+}
+
+.session-copy strong {
+  font-size: 0.98rem;
+  color: #f8fafc;
+}
+
+.session-hint {
+  font-size: 0.88rem;
+  color: #94a3b8;
+}
+
+.session-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  justify-content: center;
+}
+
+.session-select {
+  width: 100%;
+  padding: 0.72rem 0.85rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(148, 163, 184, 0.26);
+  background: rgba(15, 23, 42, 0.95);
+  color: #f8fafc;
+  font-size: 0.95rem;
+}
+
+.video-wrapper {
+  position: relative;
+  width: min(100%, 900px);
+  margin: 0 auto;
+  aspect-ratio: 16 / 9;
+  max-height: 62vh;
+  border-radius: 1rem;
+  overflow: hidden;
+  background: #0d1526;
+  border: 2px solid #D97706;
+  box-shadow: 0 0 20px rgba(217, 119, 6, 0.25),
+              0 8px 40px rgba(0, 0, 0, 0.55),
+              inset 0 0 30px rgba(217, 119, 6, 0.08);
+}
+
+#video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  display: block;
+  transform: none;
+}
+
+.video-wrapper.is-mobile-portrait #video {
+  object-fit: cover;
+  object-position: center;
+}
+
+.video-wrapper.is-mobile-landscape #video {
+  object-fit: contain;
+}
+
+#video.is-mirrored {
+  transform: scaleX(-1);
+}
+
+#canvasOverlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.face-guide {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 35%;
+  height: 70%;
+  border: 2px dashed rgba(217, 119, 6, 0.3);
+  border-radius: 50%;
+  pointer-events: none;
+  transition: border-color 0.4s ease;
+  box-shadow: inset 0 0 40px rgba(217, 119, 6, 0.1);
+}
+
+.status-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 0.8rem 1rem;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.8) 100%);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  text-align: center;
+  font-size: clamp(0.82rem, 2.8vw, 1rem);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  border-top: 1px solid rgba(217, 119, 6, 0.2);
+  color: #ffffff;
+  transition: color 0.25s ease;
+}
+
+#statusText {
+  color: inherit;
+}
+
+.debug-panel {
+  font-size: 0.72rem;
+  color: #ffffff;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.04em;
+  user-select: none;
+}
+
+@media (max-width: 720px) {
+  .sessao-page {
+    gap: 0.7rem;
+  }
+
+  #sessaoFaceCard .face-main {
+    gap: 0.6rem;
+  }
+
+  #sessaoFaceCard .video-wrapper,
+  #sessaoListaCard .table-wrap {
+    max-height: none;
+  }
+
+  #sessaoFaceCard .video-wrapper {
+    width: 100%;
+  }
+
+  #sessaoListaCard .form-actions {
+    width: 100%;
+  }
+
+  #sessaoListaCard .form-actions > * {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .session-card {
+    grid-template-columns: 1fr;
+  }
+
+  .action-links {
+    justify-content: stretch;
+  }
+
+  .records-link,
+  .session-refresh {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .session-hint {
+    font-size: 0.82rem;
+    line-height: 1.35;
+  }
+
+  .status-bar {
+    padding: 0.68rem 0.75rem;
+  }
+
+  .face-guide {
+    width: 85%;
+    height: 75%;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 520px) {
+  body {
+    align-items: flex-start;
+    padding-top: 0.5rem;
+  }
+
+  .app {
+    gap: 0.5rem;
+  }
+
+  .video-wrapper {
+    max-height: 78vh;
+    aspect-ratio: auto;
+  }
+
+  .face-guide {
+    width: 32%;
+    height: 80%;
+  }
+}

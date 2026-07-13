@@ -1,0 +1,201 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <title>Configurações - Laboral</title>
+  <link rel="stylesheet" href="../styles/base.css?v=20260422a" />
+  <link rel="stylesheet" href="../styles/registros.css?v=20260408a" />
+</head>
+<body data-layout="internal" data-nav-key="configuracoes" data-page-title="Configurações do sistema" data-page-subtitle="Ajuste o comportamento da aplicação sem necessidade de reinicialização.">
+  <main data-layout-content>
+      <form id="configForm" novalidate>
+
+        <!-- Registro de Presença -->
+        <section class="card stack-section">
+          <div class="section-head">
+            <div>
+              <span class="eyebrow">Presença</span>
+              <h2>Registro de Presença</h2>
+            </div>
+            <span id="configStatusPresenca" class="muted-text"></span>
+          </div>
+
+          <div class="session-form">
+
+            <label>
+              <span>Intervalo mínimo checkout (segundos)</span>
+              <input type="number" id="min_checkout_intervalo_seg" min="1" max="7200" step="1" />
+              <small class="muted-text field-hint" id="desc_min_checkout_intervalo_seg"></small>
+            </label>
+
+            <label>
+              <span>Cooldown entre tentativas (ms)</span>
+              <input type="number" id="cooldown_entre_tentativas_ms" min="1000" max="60000" step="500" />
+              <small class="muted-text field-hint" id="desc_cooldown_entre_tentativas_ms"></small>
+            </label>
+
+          </div>
+        </section>
+
+        <section class="card stack-section">
+          <div class="section-head">
+            <div>
+              <span class="eyebrow">Admin</span>
+              <h2>Gerenciar tipos de sessão</h2>
+            </div>
+            <span id="tiposSessaoStatus" class="muted-text">Cadastre e gerencie os tipos de sessão.</span>
+          </div>
+
+          <div id="tipoSessaoForm" class="session-form">
+            <label class="field-span-2">
+              <span>Novo tipo de sessão</span>
+              <input id="novoTipoSessaoNome" type="text" maxlength="80" placeholder="Ex.: Ginástica Laboral, Treinamento Postural" />
+            </label>
+            <div class="field-span-2 form-actions">
+              <button type="button" id="adicionarTipoSessaoBtn" class="primary-btn">Adicionar tipo</button>
+            </div>
+          </div>
+
+          <div id="tiposListaWrap" class="table-wrap top-space">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>Status</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="tiposListaBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Reconhecimento Facial -->
+        <section class="card stack-section">
+          <div class="section-head">
+            <div>
+              <span class="eyebrow">Biometria</span>
+              <h2>Reconhecimento Facial</h2>
+            </div>
+            <span id="configStatusFacial" class="muted-text"></span>
+          </div>
+
+          <div class="session-form">
+
+            <label>
+              <span>Limiar de similaridade (0-1)</span>
+              <input type="number" id="limiar_similaridade" min="0.50" max="1.00" step="0.01" />
+              <small class="muted-text field-hint" id="desc_limiar_similaridade"></small>
+            </label>
+
+            <label>
+              <span>EAR olho fechado</span>
+              <input type="number" id="ear_fechado" min="0.05" max="0.40" step="0.01" />
+              <small class="muted-text field-hint" id="desc_ear_fechado"></small>
+            </label>
+
+            <label>
+              <span>EAR olho aberto</span>
+              <input type="number" id="ear_aberto" min="0.10" max="0.50" step="0.01" />
+              <small class="muted-text field-hint" id="desc_ear_aberto"></small>
+            </label>
+
+            <label>
+              <span>Área mínima do rosto (0-1)</span>
+              <input type="number" id="area_minima_rosto" min="0.01" max="0.50" step="0.01" />
+              <small class="muted-text field-hint" id="desc_area_minima_rosto"></small>
+            </label>
+
+            <label>
+              <span>Frames mín. olho fechado</span>
+              <input type="number" id="frames_fechado_min" min="1" max="10" step="1" />
+              <small class="muted-text field-hint" id="desc_frames_fechado_min"></small>
+            </label>
+
+            <label>
+              <span>Frames mín. olho aberto</span>
+              <input type="number" id="frames_aberto_min" min="1" max="10" step="1" />
+              <small class="muted-text field-hint" id="desc_frames_aberto_min"></small>
+            </label>
+
+            <label>
+              <span>Atraso pós-piscada para captura (ms)</span>
+              <input type="number" id="atraso_pos_piscada_ms" min="0" max="5000" step="50" />
+              <small class="muted-text field-hint" id="desc_atraso_pos_piscada_ms"></small>
+            </label>
+
+          </div>
+
+          <div class="face-preview-shell top-space">
+            <div class="face-preview-card">
+              <div class="face-preview-photos" role="img" aria-label="Pré-visualização de olhos abertos e fechados">
+                <img id="faceImgOpen" class="face-preview-photo" src="../assets/img/olhosabertos.jpg" alt="Referência facial com olhos abertos" />
+                <img id="faceImgClosed" class="face-preview-photo hidden" src="../assets/img/olhosfechados.png" alt="Referência facial com olhos fechados" />
+                <canvas id="facePreviewOverlay" class="face-preview-overlay" aria-hidden="true"></canvas>
+              </div>
+              <div class="form-actions top-space">
+                <button type="button" id="alternarOlhosBtn" class="ghost-btn">Alternar para olhos fechados</button>
+              </div>
+            </div>
+
+            <div class="face-preview-metrics">
+              <h3>Pré-visualização em tempo real</h3>
+              <p class="muted-text">Ajuste os números e veja imediatamente como o estado atual seria classificado.</p>
+              <div class="preview-grid">
+                <div><strong>Modo visual:</strong> <span id="previewModoOlho">Olhos abertos</span></div>
+                <div><strong>EAR simulado:</strong> <span id="previewEarAtual">0.00</span></div>
+                <div><strong>Limiar fechado:</strong> <span id="previewEarFechado">0.00</span></div>
+                <div><strong>Limiar aberto:</strong> <span id="previewEarAberto">0.00</span></div>
+                <div><strong>Resultado:</strong> <span id="previewClassificacao" class="pill">-</span></div>
+              </div>
+              <small class="muted-text">Os pontilhados simulam os mesmos pontos de referência dos olhos usados na verificação facial. As alterações só são aplicadas no sistema quando você clicar em salvar.</small>
+            </div>
+          </div>
+        </section>
+
+        <!-- Sistema -->
+        <section class="card stack-section">
+          <div class="section-head">
+            <div>
+              <span class="eyebrow">Sistema</span>
+              <h2>Sistema</h2>
+            </div>
+            <span id="configStatusSistema" class="muted-text"></span>
+          </div>
+
+          <div class="session-form">
+
+            <label>
+              <span>Limite de linhas por exportação</span>
+              <input type="number" id="limite_exportacao" min="100" max="100000" step="100" />
+              <small class="muted-text field-hint" id="desc_limite_exportacao"></small>
+            </label>
+
+            <label>
+              <span>TTL do token de autenticação (horas)</span>
+              <input type="number" id="ttl_token_horas" min="1" max="720" step="1" />
+              <small class="muted-text field-hint" id="desc_ttl_token_horas"></small>
+            </label>
+
+          </div>
+        </section>
+
+        <div class="form-actions" style="margin-top:0.5rem;">
+          <button type="submit" class="primary-btn" id="salvarBtn">Salvar todas as configurações</button>
+          <button type="button" class="ghost-btn" id="resetBtn">Descartar alterações</button>
+          <span id="configStatusGlobal" class="muted-text"></span>
+        </div>
+
+      </form>
+  </main>
+
+  <script src="../scripts/auth.js?v=20260426b"></script>
+  <script src="../components/internal-layout.js?v=20260426b"></script>
+  <script src="../scripts/configuracoes.js?v=20260402f"></script>
+</body>
+</html>
+
+
+
+
