@@ -299,8 +299,8 @@ async function iniciar() {
     // Inicia o servidor
     app.listen(config.PORT, config.HOST, () => {
       console.log(`[server] ✓ Rodando em http://${config.HOST}:${config.PORT}`);
-      console.log(`[server] ✓ CompreFace: ${config.COMPREFACE_URL}`);
-      console.log(`[server] ✓ Threshold de similaridade: ${config.SIMILARITY_THRESHOLD}`);
+      console.log(`[server] ✓ Face Recognition: ${config.FACE_RECOGNITION_URL}`);
+      console.log(`[server] ✓ Threshold facial: ${config.FACE_RECOGNITION_THRESHOLD}`);
       console.log(`[server] ✓ Banco de dados: ${config.DB_DATABASE}@${config.DB_HOST}:${config.DB_PORT}`);
     });
   } catch (err) {

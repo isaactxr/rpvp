@@ -27,6 +27,17 @@ services:
     environment:
        TUNNEL_TOKEN: ${TUNNEL_TOKEN}
 
+  face-recognition:
+    build:
+      context: ./face-recognition
+      dockerfile: Dockerfile
+    container_name: rpvp-face-recognition
+    restart: unless-stopped
+    environment:
+      PYTHONUNBUFFERED: "1"
+    expose:
+      - "8000"
+
   backend:
     build:
       context: ./backend
@@ -36,6 +47,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      face-recognition:
+        condition: service_started
     environment:
       NODE_ENV: ${NODE_ENV:-production}
       PORT: 3000
@@ -44,10 +57,9 @@ services:
       TRUST_PROXY: ${TRUST_PROXY:-1}
       CORS_ORIGINS: ${CORS_ORIGINS:?Defina CORS_ORIGINS com os dominios permitidos}
 
-      COMPREFACE_URL: ${COMPREFACE_URL:-http://localhost:8000}
-      COMPREFACE_API_KEY: ${COMPREFACE_API_KEY:?Defina COMPREFACE_API_KEY no arquivo .env}
-      COMPREFACE_SIMILARITY_THRESHOLD: ${COMPREFACE_SIMILARITY_THRESHOLD:-0.92}
-      COMPREFACE_TIMEOUT_MS: ${COMPREFACE_TIMEOUT_MS:-10000}
+      FACE_RECOGNITION_URL: ${FACE_RECOGNITION_URL:-http://face-recognition:8000}
+      FACE_RECOGNITION_THRESHOLD: ${FACE_RECOGNITION_THRESHOLD:-0.6}
+      FACE_RECOGNITION_TIMEOUT_MS: ${FACE_RECOGNITION_TIMEOUT_MS:-15000}
 
       AUTH_TOKEN_TTL_HOURS: ${AUTH_TOKEN_TTL_HOURS:-12}
       AUTH_PASSWORD_SALT: ${AUTH_PASSWORD_SALT:?Defina AUTH_PASSWORD_SALT no arquivo .env}

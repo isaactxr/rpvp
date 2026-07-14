@@ -45,8 +45,7 @@ function parseTrustProxy(value) {
 const NODE_ENV = String(process.env.NODE_ENV || 'development').toLowerCase();
 
 const REQUIRED = [
-  'COMPREFACE_URL',
-  'COMPREFACE_API_KEY',
+  'FACE_RECOGNITION_URL',
   'CORS_ORIGINS',
   'AUTH_PASSWORD_SALT',
   'DB_HOST',
@@ -88,11 +87,10 @@ module.exports = Object.freeze({
   APP_TIMEZONE: process.env.APP_TIMEZONE || 'America/Sao_Paulo',
   TRUST_PROXY: parseTrustProxy(process.env.TRUST_PROXY),
 
-  // CompreFace
-  COMPREFACE_URL:      process.env.COMPREFACE_URL,
-  COMPREFACE_API_KEY:  process.env.COMPREFACE_API_KEY,
-  SIMILARITY_THRESHOLD: parseFloat(process.env.COMPREFACE_SIMILARITY_THRESHOLD) || 0.92,
-  COMPREFACE_TIMEOUT_MS: parseInt(process.env.COMPREFACE_TIMEOUT_MS, 10) || 10000,
+  // Face Recognition
+  FACE_RECOGNITION_URL: process.env.FACE_RECOGNITION_URL,
+  FACE_RECOGNITION_THRESHOLD: parseFloat(process.env.FACE_RECOGNITION_THRESHOLD) || 0.6,
+  FACE_RECOGNITION_TIMEOUT_MS: parseInt(process.env.FACE_RECOGNITION_TIMEOUT_MS, 10) || 15000,
 
   // CORS
   CORS_ORIGINS: corsRaw,
