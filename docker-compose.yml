@@ -31,7 +31,7 @@ services:
     build:
       context: ./face-recognition
       dockerfile: Dockerfile
-    container_name: rpvp-face-recognition
+    container_name: face-recognition
     restart: unless-stopped
     environment:
       PYTHONUNBUFFERED: "1"
