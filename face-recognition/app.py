@@ -1,5 +1,7 @@
 import io
 import json
+import math
+from numbers import Real
 from typing import Any, List
 
 import face_recognition
@@ -15,6 +17,24 @@ class Candidate(BaseModel):
     usuarioId: int
     faceId: int
     embedding: List[float]
+
+
+def _validate_candidate_embeddings(candidate_models: list[Candidate]) -> None:
+    for index, candidate in enumerate(candidate_models):
+        embedding = candidate.embedding
+        if len(embedding) != 128 or any(
+            isinstance(value, bool)
+            or not isinstance(value, Real)
+            or not math.isfinite(float(value))
+            for value in embedding
+        ):
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    f"Embedding do candidato {index} invalido: "
+                    "deve conter exatamente 128 valores numericos finitos."
+                ),
+            )
 
 
 def _load_rgb_image(raw: bytes) -> np.ndarray:
@@ -82,6 +102,7 @@ async def recognize(
             "message": "Nenhum candidato cadastrado.",
         }
 
+    _validate_candidate_embeddings(candidate_models)
     known = np.array([item.embedding for item in candidate_models], dtype=np.float64)
     distances = face_recognition.face_distance(known, unknown)
     best_index = int(np.argmin(distances))
