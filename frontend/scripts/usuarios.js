@@ -507,12 +507,17 @@ async function carregarImagemAutenticada(url, imgEl) {
 }
 
 function montarUrlImagemColecao(face) {
-  const imageId = String(face?.image_id || face?.imageId || face?.id || '').trim();
-  if (imageId) {
-    return `${window.Auth.getApiBase()}/compreface/faces/${encodeURIComponent(imageId)}/img`;
+  const fotoUrl = String(face?.foto_url || '').trim();
+  if (fotoUrl) {
+    return fotoUrl;
   }
 
-  return String(face?.foto_url || '').trim() || null;
+  const imageId = String(face?.image_id || face?.imageId || face?.id || '').trim();
+  if (imageId) {
+    return `${window.Auth.getApiBase()}/faces/${encodeURIComponent(imageId)}/img`;
+  }
+
+  return null;
 }
 
 function limparPainelColecao(mensagem) {

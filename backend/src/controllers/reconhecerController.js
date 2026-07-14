@@ -590,7 +590,7 @@ async function listarColecaoFacialUsuario(req, res) {
 
     res.json({
       success: true,
-      subject: usuario.nome_completo,
+      subject: usuario.subject_compreface || usuario.nome_completo,
       data: faces.map((face) => ({
         id: face.id,
         image_id: String(face.id),
@@ -630,7 +630,7 @@ async function adicionarFotosColecaoUsuario(req, res) {
 
     res.status(201).json({
       success: true,
-      subject: usuario.nome_completo,
+      subject: usuario.subject_compreface || usuario.nome_completo,
       total: imagens.length,
       data: imagens,
       message: `${imagens.length} foto(s) cadastrada(s).`,
