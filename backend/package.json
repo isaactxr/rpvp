@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "migrate": "node scripts/runMigrations.js"
+    "migrate": "node scripts/runMigrations.js",
+    "faces:reprocess": "node scripts/reprocessFaceEmbeddings.js"
   },
   "dependencies": {
     "axios": "^1.7.2",
