@@ -463,7 +463,7 @@ function rostoEstaCentralizado(landmarks) {
  * retorna um Blob JPEG (qualidade 0.92).
  *
  * O frame é capturado sem espelhamento (raw) → consistente com
- * as imagens de cadastro enviadas ao CompreFace.
+ * as imagens usadas no cadastro facial.
  *
  * @returns {Promise<Blob>}
  */
