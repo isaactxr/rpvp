@@ -21,6 +21,17 @@ function normalizarEmbedding(embedding) {
   return embedding;
 }
 
+function normalizarCandidatos(candidates) {
+  if (!Array.isArray(candidates)) {
+    throw criarErro('Lista de candidatos facial invalida.', 400);
+  }
+
+  return candidates.map((candidate) => ({
+    ...candidate,
+    embedding: normalizarEmbedding(candidate?.embedding),
+  }));
+}
+
 async function postImagem(path, { buffer, mimetype, filename = 'face.jpg', fields = {} }) {
   const form = new FormData();
   form.append('file', buffer, {
@@ -66,12 +77,13 @@ async function encodeImage({ buffer, mimetype, originalname }) {
 }
 
 async function recognizeImage({ buffer, mimetype, originalname, candidates }) {
+  const candidatosNormalizados = normalizarCandidatos(candidates);
   const data = await postImagem('/recognize', {
     buffer,
     mimetype,
     filename: originalname || 'face.jpg',
     fields: {
-      candidates,
+      candidates: candidatosNormalizados,
       tolerance: String(config.FACE_RECOGNITION_THRESHOLD),
     },
   });
