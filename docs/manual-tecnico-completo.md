@@ -19,7 +19,7 @@ Com base nos arquivos analisados, foram identificadas as seguintes funcionalidad
 - login com sessão autenticada por token;
 - troca obrigatória de senha no primeiro acesso;
 - verificação facial com câmera do navegador e detecção de piscada;
-- reconhecimento facial integrado ao **CompreFace**;
+- reconhecimento facial pelo servico interno `face-recognition`;
 - criação, acompanhamento, início e encerramento de sessões;
 - controle de presença com `check-in` e `check-out` por sessão;
 - auditoria de registros com filtros e exportação em PDF/Excel;
@@ -50,8 +50,8 @@ Somente tecnologias claramente identificadas no código:
 - `JavaScript` puro (sem framework identificado)
 - `MediaPipe Face Mesh` via CDN
 
-#### Integrações externas
-- `CompreFace` para reconhecimento facial
+#### Integrações internas
+- `face-recognition` para reconhecimento facial
 
 ---
 
@@ -65,7 +65,7 @@ A arquitetura observada é compatível com um **monólito web em camadas**, comp
 - **backend HTTP** centralizado em Express;
 - **camada de serviços** responsável pelas regras de negócio e acesso a banco/integrações;
 - **PostgreSQL** como persistência principal;
-- **CompreFace** como serviço externo de reconhecimento facial.
+- **face-recognition** como serviço interno de reconhecimento facial, acessado apenas pelo backend na rede Docker.
 
 Não foi identificada uma camada formal de `models/` ou ORM. O acesso aos dados é feito diretamente por SQL na camada `services`.
 
@@ -90,7 +90,7 @@ De forma consolidada, o fluxo observado é:
 2. páginas protegidas usam `window.Auth.requireAuth()` para validar sessão e perfil;
 3. o backend recebe chamadas HTTP e passa por middlewares de autenticação e upload quando necessário;
 4. os controllers delegam a lógica aos services;
-5. os services acessam o banco com SQL direto e/ou chamam o CompreFace;
+5. os services acessam o banco com SQL direto e, quando necessario, chamam o servico interno `face-recognition`;
 6. as respostas retornam ao frontend para atualização da interface.
 
 ---
@@ -144,7 +144,7 @@ docs/
 - `backend/src/routes/reconhecer.js` é o ponto central de roteamento do backend.
 - `reconhecerController.js` e `adminController.js` distribuem as requisições para services especializados.
 - os services se conectam entre si por composição, por exemplo:
-  - `reconhecerController` → `compreFaceService` + `presencaService` + `auditImageService`;
+  - `reconhecerController` → `faceRecognitionService` + `presencaService` + `auditImageService`;
   - `adminController` → `configService` + `tipoSessaoService`.
 
 ---
@@ -233,7 +233,7 @@ Os services identificados são:
 | `auditoriaService.js` | consulta filtrada e paginada da trilha histórica. |
 | `auditoriaExportService.js` | exportação da auditoria para PDF e Excel. |
 | `auditImageService.js` | inserção de watermark em imagem de auditoria. |
-| `compreFaceService.js` | integração com o CompreFace. |
+| `faceRecognitionService.js` | comunicação com o serviço interno de reconhecimento facial. |
 
 #### Como se conecta
 Os services são chamados pelos controllers e compartilham `database.js` e, em alguns casos, outros services auxiliares.
@@ -277,7 +277,7 @@ Fluxo claramente identificado:
 2. `app.js` ou `sessao.js` captura a câmera e processa os landmarks faciais;
 3. a piscada é detectada pelo cálculo de `EAR`;
 4. uma imagem é capturada e enviada ao backend;
-5. o backend consulta o CompreFace e tenta gerar a imagem de auditoria;
+5. o backend consulta o serviço interno `face-recognition` e tenta gerar a imagem de auditoria;
 6. `presencaService.registrarBatidaFacial()` decide se o evento será `check-in` ou `check-out`;
 7. o resultado volta ao frontend com mensagem operacional.
 
@@ -304,8 +304,8 @@ Fluxo identificado:
 
 - cadastro/edição de usuários em `usuarios.js`;
 - persistência em `usuarioService.js`;
-- criação de subject e upload de fotos no `compreFaceService.js`;
-- consulta e remoção de faces pelo mesmo módulo.
+- envio, consulta e remoção de fotos pela coleção facial do usuário;
+- processamento das fotos pelo serviço interno `face-recognition`.
 
 ---
 
@@ -369,7 +369,7 @@ Não foi identificada claramente a adoção formal de DDD, Clean Architecture ou
 | Integração | Papel |
 |---|---|
 | `PostgreSQL` | Persistência principal de usuários, sessões, presenças, configurações e auditoria. |
-| `CompreFace` | Reconhecimento facial e gestão da coleção de faces. |
+| `face-recognition` | Reconhecimento facial interno; as fotos da coleção ficam no banco do RPVP. |
 | `MediaPipe Face Mesh` | Detecção local de landmarks faciais no navegador. |
 
 ---
@@ -386,8 +386,8 @@ Não foi identificada claramente a adoção formal de DDD, Clean Architecture ou
    - controla login, revogação e expiração de sessão;
    - depende da tabela `sessoes_autenticacao` para autorização.
 
-3. **Integração com CompreFace**
-   - qualquer indisponibilidade do serviço externo afeta diretamente o registro de presença.
+3. **Serviço interno de reconhecimento facial**
+   - o backend depende de `face-recognition` para processar os registros faciais.
 
 4. **Fluxo de schema e compatibilidade**
    - há lógica estrutural em `db/init.sql` e também no bootstrap de compatibilidade em `server.js`, o que exige cuidado para não divergir ambientes.
@@ -443,7 +443,7 @@ Com base na estrutura atual, o fluxo recomendado de manutenção é:
 - alterar `presencaService.js` com atenção, pois ele impacta diretamente o comportamento operacional do sistema;
 - validar qualquer mudança de autenticação em conjunto com o frontend;
 - ao adicionar campos de banco, revisar tanto `db/init.sql` quanto o bootstrap/compatibilidade do `server.js`;
-- testar a integração com CompreFace sempre que houver mudança no upload ou no subject do usuário;
+- testar a integração com `face-recognition` sempre que houver mudança no upload ou na coleção facial do usuário;
 - revisar permissões por perfil ao adicionar rotas novas.
 
 ---
@@ -467,38 +467,33 @@ As sugestões abaixo são suportadas por evidências observadas no código:
 5. **Padronizar observabilidade**
    - motivação: o sistema usa majoritariamente `console.log` e `console.error`.
 
-6. **Formalizar o fluxo Docker com CompreFace**
-   - motivação: quando os ambientes sobem em stacks separadas, o backend do Sistema Laboral (RPVP) precisa ser conectado manualmente à rede do CompreFace para alcançar o serviço externo.
+6. **Monitorar o serviço interno de reconhecimento facial**
+   - motivação: indisponibilidades de `face-recognition` afetam diretamente o registro de presença.
 
 ---
 
-## 11. Execução com Docker e CompreFace
+## 11. Execução com Docker e face-recognition
 
 ### 11.1 Fluxo operacional identificado
 
-Quando o Sistema Laboral (RPVP) é executado via Docker e o CompreFace está em outra stack Docker, a comunicação entre os containers depende de estarem na mesma rede.
+O `face-recognition` é um serviço interno da mesma stack Docker do Sistema Laboral (RPVP), acessado apenas pelo backend.
 
 O `docker-compose.yml` do RPVP sobe os serviços:
 
 - `postgres`;
+- `face-recognition`;
 - `backend`;
 - `frontend`.
 
 Nesse compose, o backend fica acessível internamente como `backend:3000`, e o frontend consome a API por `BACKEND_TARGET=http://backend:3000`.
 
-### 11.2 Conexão com a rede do CompreFace
+### 11.2 Comunicação entre backend e face-recognition
 
-Em caso de utilização via Docker, após subir o CompreFace e o RPVP, será necessário conectar o backend do RPVP à rede do CompreFace por meio do comando:
-
-```bash
-docker network connect "COMPREFACE_DEFAULT" "RPVP-BACKEND"
-```
-
-Esse passo é importante para permitir que o backend do Sistema Laboral (RPVP) consiga alcançar o serviço do CompreFace quando cada solução estiver em sua própria rede Docker.
+O backend usa `FACE_RECOGNITION_URL=http://face-recognition:8000` por padrão. O Compose inicia o serviço antes do backend; não é necessária conexão manual a outra rede Docker.
 
 ### 11.3 Ponto de atenção
 
-O nome exato da rede e do container pode variar conforme o ambiente. Do ponto de vista operacional do manual, o requisito é que o container do backend do Sistema Laboral (RPVP) esteja conectado à rede onde o CompreFace está publicado.
+O requisito operacional é manter `face-recognition` disponível na rede interna do Compose e preservar as variáveis `FACE_RECOGNITION_*` no ambiente do backend.
 
 ---
 

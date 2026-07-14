@@ -5,7 +5,7 @@
  *
  * Usa armazenamento em memória (memoryStorage) para que o buffer
  * da imagem fique disponível em req.file.buffer e possa ser
- * encaminhado diretamente ao CompreFace sem gravar em disco.
+ * encaminhado diretamente ao motor facial sem gravar em disco.
  *
  * Restrições:
  *   - Apenas imagens (JPEG, PNG, WEBP)

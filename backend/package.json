@@ -1,7 +1,7 @@
 {
   "name": "presenca-backend",
   "version": "1.0.0",
-  "description": "Backend de registro de presença por reconhecimento facial com CompreFace",
+  "description": "Backend de registro de presenca por reconhecimento facial",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

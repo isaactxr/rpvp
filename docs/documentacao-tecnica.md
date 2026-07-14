@@ -6,7 +6,7 @@ Sistema web para controle de presenca com reconhecimento facial, composto por:
 
 - backend em Node.js + Express + PostgreSQL;
 - frontend em HTML/CSS/JavaScript sem framework, servido por um dev-server proprio;
-- integracao com CompreFace para reconhecimento facial;
+- reconhecimento facial por servico interno `face-recognition`, acessado apenas pelo backend na rede Docker;
 - validacao local de piscada com MediaPipe Face Mesh nas telas operacionais de captura.
 
 Principais capacidades implementadas atualmente:
@@ -18,7 +18,7 @@ Principais capacidades implementadas atualmente:
 - auditoria com filtros, imagem por registro e exportacao PDF/Excel;
 - dashboard operacional com indicadores do dia;
 - gestao de usuarios, setores, tipos de sessao e configuracoes administrativas;
-- integracao com colecao facial do CompreFace para cadastro e manutencao de fotos.
+- gestao de colecao facial para cadastro e manutencao de fotos.
 
 ## 2. Estrutura do projeto
 
@@ -35,7 +35,7 @@ Principais capacidades implementadas atualmente:
 - `backend/src/config/database.js`: pool e acesso ao PostgreSQL.
 - `backend/src/routes/reconhecer.js`: registro central de endpoints HTTP.
 - `backend/src/controllers/`: handlers HTTP por dominio (`reconhecerController.js`, `adminController.js`).
-- `backend/src/services/`: regras de negocio, exportacoes, autenticacao, auditoria, sessoes, usuarios e integracao CompreFace.
+- `backend/src/services/`: regras de negocio, exportacoes, autenticacao, auditoria, sessoes, usuarios e integracao com o servico facial interno.
 - `backend/src/middleware/`: autenticacao/autorizacao e upload multipart.
 
 ### 2.3 Frontend
@@ -124,7 +124,7 @@ Estruturas persistidas encontradas em `db/init.sql` e/ou garantidas no bootstrap
 
 Pontos importantes do modelo atual:
 
-- `usuarios` contem `cpf`, `usuario`, `senha_hash`, `perfil_acesso`, `ativo`, `gestor_id`, `setor_id`, `ultimo_login_em`, `reset_senha_primeiro_acesso` e `subject_compreface`.
+- `usuarios` contem `cpf`, `usuario`, `senha_hash`, `perfil_acesso`, `ativo`, `gestor_id`, `setor_id`, `ultimo_login_em`, `reset_senha_primeiro_acesso` e o identificador de reconhecimento facial.
 - `sessoes` contem `tipo_sessao`, `checkout_habilitado`, `inicio_efetivo_em` e `fim_efetivo_em`.
 - `presencas` grava `check_in_em` e `check_out_em` no mesmo registro.
 - `presencas_imagens` guarda a foto em `BYTEA` com `tipo_registro` (`checkin` ou `checkout`).
@@ -193,7 +193,7 @@ Base: o backend registra rotas diretamente em `/`, e o frontend as consome via p
 - `GET /sessoes/:id/acompanhamento/export/pdf`
 - `GET /sessoes/:id/acompanhamento/export/excel`
 
-### 6.5 Usuarios, setores e CompreFace
+### 6.5 Usuarios, setores e colecao facial
 
 - `GET /setores`
 - `GET /usuarios`
@@ -205,7 +205,7 @@ Base: o backend registra rotas diretamente em `/`, e o frontend as consome via p
 - `POST /usuarios/:id/face-collection/fotos`
 - `DELETE /usuarios/:id/face-collection`
 - `DELETE /usuarios/:id/face-collection/:imageId`
-- `GET /compreface/faces/:imageId/img`
+- `GET /faces/:faceId/img`
 
 ### 6.6 Administracao
 
@@ -224,7 +224,7 @@ Fluxo atual:
 
 1. o frontend captura imagem apos detectar piscada;
 2. envia `multipart/form-data` para `POST /reconhecer` com `file`, `sessaoId` e `tipoRegistro`;
-3. o backend consulta o CompreFace;
+3. o backend envia a imagem ao servico interno `face-recognition`;
 4. tenta gerar imagem auditada com watermark do tipo/nome da sessao;
 5. `presencaService.registrarBatidaFacial()` decide o resultado final.
 
@@ -258,7 +258,7 @@ Regras ativas em `usuarioService`:
 - cria setores sob demanda a partir do nome informado no cadastro/edicao;
 - valida que `gestor_id` aponte para usuario com perfil `gestor`;
 - permite resetar obrigacao de troca de senha no primeiro acesso;
-- usa `nome_completo` como `subject_compreface` padrao, salvo override explicito.
+- usa `nome_completo` como identificador facial padrao, salvo override explicito.
 
 ### 7.4 Configuracoes administrativas
 
@@ -304,17 +304,9 @@ Mapeamentos publicados:
 
 Observacao: no compose atual o backend nao publica `ports`; ele e acessado pelo frontend via rede interna Docker (`http://backend:3000`).
 
-### 8.2 Integracao Docker com CompreFace
+### 8.2 Integracao Docker com face-recognition
 
-Quando o Sistema Laboral (RPVP) e o CompreFace sao executados em stacks Docker separadas, o backend do RPVP precisa estar conectado a rede do CompreFace para conseguir acessar o servico externo.
-
-Em cenarios desse tipo, apos subir o CompreFace e o RPVP, sera necessario conectar o backend a rede do CompreFace com o comando:
-
-```bash
-docker network connect "COMPREFACE_DEFAULT" "RPVP-BACKEND"
-```
-
-Observacao: o nome exato da rede e do container pode variar conforme o ambiente. O requisito operacional e que o container do backend do RPVP esteja conectado a rede em que o CompreFace esta publicado.
+O `docker-compose.yml` sobe o servico interno `face-recognition` na mesma rede do backend. O backend o acessa por `FACE_RECOGNITION_URL`, cujo valor padrao no Compose e `http://face-recognition:8000`; nao ha dependencia de uma rede Docker externa.
 
 ### 8.3 Execucao local sem Docker
 

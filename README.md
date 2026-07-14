@@ -1,12 +1,12 @@
 # Laboral — Registro de Presença com Reconhecimento Facial
 
-Sistema web para gestão de sessões e auditoria de presença com reconhecimento facial (CompreFace), controle de check-in/check-out, perfis de acesso e administração de usuários.
+Sistema web para gestão de sessões e auditoria de presença com reconhecimento facial, controle de check-in/check-out, perfis de acesso e administração de usuários.
 
 ## Stack atual
 
 - Backend: Node.js + Express + PostgreSQL
 - Frontend: HTML/CSS/JavaScript (sem framework)
-- Reconhecimento: CompreFace + MediaPipe Face Mesh (detecção local no cliente)
+- Reconhecimento: serviço interno `face-recognition` + MediaPipe Face Mesh (detecção local no cliente)
 - Processamento de imagem de auditoria: Sharp
 
 ## Estrutura do projeto
@@ -47,7 +47,7 @@ frontend/
 - Dashboard operacional com KPIs do dia
 - Gestão de usuários:
   - criação com CPF e setor
-  - integração com coleção facial do CompreFace
+  - integração com coleção facial do sistema
   - reset de senha com opção de troca obrigatória no primeiro acesso
 - Configurações administrativas em banco (sem reiniciar servidor)
   - presença, biometria e sistema
@@ -67,11 +67,10 @@ cp .env.example .env
 Variáveis principais (resumo):
 
 ```env
-# CompreFace
-COMPREFACE_URL=http://localhost:8000
-COMPREFACE_API_KEY=SUA_API_KEY_AQUI
-COMPREFACE_SIMILARITY_THRESHOLD=0.92
-COMPREFACE_TIMEOUT_MS=10000
+# Face Recognition
+FACE_RECOGNITION_URL=http://face-recognition:8000
+FACE_RECOGNITION_THRESHOLD=0.6
+FACE_RECOGNITION_TIMEOUT_MS=15000
 
 # Servidor
 NODE_ENV=production
