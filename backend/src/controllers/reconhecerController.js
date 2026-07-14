@@ -151,7 +151,7 @@ async function reconhecer(req, res) {
   }
 
   const usuarioReconhecido = await usuarioService.obterUsuarioPorId(resultado.usuarioId);
-  const subject = usuarioReconhecido.subject_compreface || usuarioReconhecido.nome_completo;
+  const subject = usuarioReconhecido.subject || usuarioReconhecido.nome_completo;
   const similarity = resultado.distance === null ? null : Math.max(0, 1 - resultado.distance);
 
   let imagemAuditada = null;
@@ -590,7 +590,7 @@ async function listarColecaoFacialUsuario(req, res) {
 
     res.json({
       success: true,
-      subject: usuario.subject_compreface || usuario.nome_completo,
+      subject: usuario.subject || usuario.nome_completo,
       data: faces.map((face) => ({
         id: face.id,
         image_id: String(face.id),
@@ -630,7 +630,7 @@ async function adicionarFotosColecaoUsuario(req, res) {
 
     res.status(201).json({
       success: true,
-      subject: usuario.subject_compreface || usuario.nome_completo,
+      subject: usuario.subject || usuario.nome_completo,
       total: imagens.length,
       data: imagens,
       message: `${imagens.length} foto(s) cadastrada(s).`,

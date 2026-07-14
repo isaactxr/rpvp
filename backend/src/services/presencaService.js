@@ -77,7 +77,7 @@ async function salvarImagemAuditoria(presencaId, imagemAuditada, tipoRegistro = 
 async function obterOuCriarUsuario(subject, nomeCompleto = subject) {
   try {
     let result = await db.query(
-      'SELECT id, nome_completo, subject_compreface, perfil_acesso FROM usuarios WHERE subject_compreface = $1',
+      'SELECT id, nome_completo, subject, perfil_acesso FROM usuarios WHERE subject = $1',
       [subject]
     );
 
@@ -86,9 +86,9 @@ async function obterOuCriarUsuario(subject, nomeCompleto = subject) {
     }
 
     result = await db.query(
-      `INSERT INTO usuarios (nome_completo, subject_compreface)
+      `INSERT INTO usuarios (nome_completo, subject)
        VALUES ($1, $2)
-       RETURNING id, nome_completo, subject_compreface, perfil_acesso`,
+       RETURNING id, nome_completo, subject, perfil_acesso`,
       [nomeCompleto, subject]
     );
 

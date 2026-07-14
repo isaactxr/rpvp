@@ -137,7 +137,7 @@ async function bootstrapAdmin({ nomeCompleto, usuario, senha }) {
   const senhaHash = hashSenha(senha);
 
   const result = await db.query(
-    `INSERT INTO usuarios (nome_completo, usuario, senha_hash, perfil_acesso, ativo, reset_senha_primeiro_acesso, subject_compreface)
+    `INSERT INTO usuarios (nome_completo, usuario, senha_hash, perfil_acesso, ativo, reset_senha_primeiro_acesso, subject)
      VALUES ($1, $2, $3, 'admin', true, false, COALESCE($4, CONCAT('bootstrap-admin-', EXTRACT(EPOCH FROM NOW())::bigint)))
      RETURNING id, nome_completo, usuario, perfil_acesso`,
     [nome, usuarioNormalizado, senhaHash, 'bootstrap-admin']
@@ -168,7 +168,7 @@ async function sincronizarAdminInicial() {
     const criado = await db.query(
       `INSERT INTO usuarios (
          nome_completo,
-         subject_compreface,
+         subject,
          usuario,
          senha_hash,
          perfil_acesso,
@@ -204,7 +204,7 @@ async function sincronizarAdminInicial() {
   await db.query(
     `UPDATE usuarios
      SET nome_completo = $1,
-         subject_compreface = $2,
+         subject = $2,
          senha_hash = $3,
          ativo = true,
          reset_senha_primeiro_acesso = true,

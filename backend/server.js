@@ -168,6 +168,36 @@ async function iniciar() {
     );
 
     await db.query(
+      `DO $$
+       BEGIN
+         IF EXISTS (
+           SELECT 1
+           FROM information_schema.columns
+           WHERE table_schema = 'public'
+             AND table_name = 'usuarios'
+             AND column_name = 'subject_compreface'
+         )
+         AND NOT EXISTS (
+           SELECT 1
+           FROM information_schema.columns
+           WHERE table_schema = 'public'
+             AND table_name = 'usuarios'
+             AND column_name = 'subject'
+         ) THEN
+           ALTER TABLE usuarios RENAME COLUMN subject_compreface TO subject;
+         END IF;
+
+         IF EXISTS (
+           SELECT 1
+           FROM pg_constraint
+           WHERE conname = 'usuarios_subject_compreface_key'
+         ) THEN
+           ALTER TABLE usuarios RENAME CONSTRAINT usuarios_subject_compreface_key TO usuarios_subject_key;
+         END IF;
+       END $$`
+    );
+
+    await db.query(
       `CREATE UNIQUE INDEX IF NOT EXISTS usuarios_cpf_unique_idx
        ON usuarios (cpf)
        WHERE cpf IS NOT NULL`

@@ -245,7 +245,7 @@ ALTER SEQUENCE public.tipos_sessao_id_seq OWNED BY public.tipos_sessao.id;
 CREATE TABLE public.usuarios (
     id integer NOT NULL,
     nome_completo character varying(255) NOT NULL,
-    subject_compreface character varying(255) NOT NULL,
+    subject character varying(255) NOT NULL,
     usuario character varying(60),
     senha_hash text,
     perfil_acesso character varying(30) DEFAULT 'colaborador'::character varying NOT NULL,
@@ -425,7 +425,7 @@ COPY public.tipos_sessao (id, nome, ativo, criado_em) FROM stdin;
 -- Data for Name: usuarios; Type: TABLE DATA; Schema: public; Owner: vianapeixoto
 --
 
-COPY public.usuarios (id, nome_completo, subject_compreface, usuario, senha_hash, perfil_acesso, criado_em, atualizado_em, ativo, gestor_id, ultimo_login_em, cpf, reset_senha_primeiro_acesso, setor_id) FROM stdin;
+COPY public.usuarios (id, nome_completo, subject, usuario, senha_hash, perfil_acesso, criado_em, atualizado_em, ativo, gestor_id, ultimo_login_em, cpf, reset_senha_primeiro_acesso, setor_id) FROM stdin;
 1	Viana Peixoto	Viana Peixoto	viana.peixoto	pbkdf2$120000$sha512$524f347e5367c94e3111fd0119dc3c254f4a141e0ff58b81f04c058f46901b80792fc0aed60b0d4613005bcf196a753cec7df7c0708cda29c2bc9bdb00f00649	admin	2026-04-22 18:22:19.983	2026-04-23 10:17:53.343826	t	\N	2026-04-23 10:17:53.343826	00000000000	f	\N
 \.
 
@@ -553,11 +553,11 @@ ALTER TABLE ONLY public.usuarios_faces
 
 
 --
--- Name: usuarios usuarios_subject_compreface_key; Type: CONSTRAINT; Schema: public; Owner: vianapeixoto
+-- Name: usuarios usuarios_subject_key; Type: CONSTRAINT; Schema: public; Owner: vianapeixoto
 --
 
 ALTER TABLE ONLY public.usuarios
-    ADD CONSTRAINT usuarios_subject_compreface_key UNIQUE (subject_compreface);
+    ADD CONSTRAINT usuarios_subject_key UNIQUE (subject);
 
 
 --
