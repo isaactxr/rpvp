@@ -11,10 +11,14 @@ function criarErro(message, statusCode = 502) {
 }
 
 function normalizarEmbedding(embedding) {
-  if (!Array.isArray(embedding) || embedding.length === 0) {
+  if (
+    !Array.isArray(embedding) ||
+    embedding.length !== 128 ||
+    embedding.some((value) => typeof value !== 'number' || !Number.isFinite(value))
+  ) {
     throw criarErro('Embedding facial invalido retornado pelo motor.', 502);
   }
-  return embedding.map((value) => Number(value));
+  return embedding;
 }
 
 async function postImagem(path, { buffer, mimetype, filename = 'face.jpg', fields = {} }) {

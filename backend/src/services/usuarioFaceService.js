@@ -17,6 +17,17 @@ function normalizarId(valor, nome = 'ID') {
   return numero;
 }
 
+function normalizarEmbedding(embedding, message = 'Embedding invalido.', statusCode = 400) {
+  if (
+    !Array.isArray(embedding) ||
+    embedding.length !== 128 ||
+    embedding.some((value) => typeof value !== 'number' || !Number.isFinite(value))
+  ) {
+    throw criarErro(message, statusCode);
+  }
+  return embedding;
+}
+
 async function listarFacesUsuario(usuarioId) {
   const userId = normalizarId(usuarioId, 'Usuario');
   const result = await db.query(
@@ -53,7 +64,7 @@ async function removerFaceUsuario(faceId, usuarioId = null) {
   const id = normalizarId(faceId, 'Face');
   const params = [id];
   let whereUsuario = '';
-  if (usuarioId) {
+  if (usuarioId !== null && usuarioId !== undefined) {
     params.push(normalizarId(usuarioId, 'Usuario'));
     whereUsuario = ` AND usuario_id = $${params.length}`;
   }
@@ -75,7 +86,7 @@ async function obterImagemFace(faceId, usuarioId = null) {
   const id = normalizarId(faceId, 'Face');
   const params = [id];
   let whereUsuario = '';
-  if (usuarioId) {
+  if (usuarioId !== null && usuarioId !== undefined) {
     params.push(normalizarId(usuarioId, 'Usuario'));
     whereUsuario = ` AND usuario_id = $${params.length}`;
   }
@@ -107,22 +118,24 @@ async function listarCandidatosReconhecimento() {
   return result.rows.map((row) => ({
     faceId: Number(row.faceId),
     usuarioId: Number(row.usuarioId),
-    embedding: row.embedding.map(Number),
+    embedding: normalizarEmbedding(
+      row.embedding,
+      'Embedding facial persistido invalido para reconhecimento.',
+      500
+    ),
   }));
 }
 
 async function atualizarEmbedding(faceId, embedding) {
   const id = normalizarId(faceId, 'Face');
-  if (!Array.isArray(embedding) || embedding.length === 0) {
-    throw criarErro('Embedding invalido.');
-  }
+  const embeddingNormalizado = normalizarEmbedding(embedding);
   const result = await db.query(
     `UPDATE usuarios_faces
      SET embedding = $2,
          atualizado_em = CURRENT_TIMESTAMP
      WHERE id = $1
      RETURNING id, usuario_id, content_type, atualizado_em, (embedding IS NOT NULL) AS tem_embedding`,
-    [id, embedding.map(Number)]
+    [id, embeddingNormalizado]
   );
   if (result.rows.length === 0) {
     throw criarErro('Face nao encontrada.', 404);
