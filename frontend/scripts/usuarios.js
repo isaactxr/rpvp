@@ -4,7 +4,7 @@
  * Módulo administrativo de usuários e coleção facial.
  *
  * Controla o cadastro, a atualização de perfis, o reset de senha e a sincronização das
- * imagens faciais enviadas ao CompreFace para cada usuário selecionado.
+ * imagens faciais enviadas para cada usuário selecionado.
  */
 const PERFIS = ['admin', 'gestor', 'instrutor', 'colaborador'];
 const SETOR_SEM_NOME = 'Sem setor';
@@ -362,7 +362,8 @@ function filtrarUsuariosColecao() {
   if (!termo) return state.usuarios;
 
   return state.usuarios.filter((usuario) => {
-    return [usuario.nome_completo, usuario.usuario, usuario.subject_compreface, usuario.setor]
+    const subject = Object.entries(usuario).find(([key]) => key.startsWith('subject_'))?.[1];
+    return [usuario.nome_completo, usuario.usuario, subject, usuario.setor]
       .filter(Boolean)
       .some((valor) => String(valor).toLowerCase().includes(termo));
   });
@@ -431,7 +432,7 @@ function renderListaUsuariosDoSetor(usuariosFiltrados) {
       const totalFaces = state.colecaoUsuario?.id === usuario.id ? state.colecaoFaces.length : null;
       button.innerHTML = `
         <strong>${escapeHtml(usuario.nome_completo || '-')}</strong>
-        <span>${escapeHtml(usuario.subject_compreface || usuario.usuario || '-')}</span>
+        <span>${escapeHtml(Object.entries(usuario).find(([key]) => key.startsWith('subject_'))?.[1] || usuario.usuario || '-')}</span>
         <span>${usuario.ativo ? 'Ativo' : 'Inativo'}${totalFaces !== null ? ` • ${totalFaces} imagem(ns)` : ''}</span>
       `;
       button.addEventListener('click', async () => {
@@ -478,7 +479,7 @@ function atualizarEstadoDropzone() {
 
   const totalArquivos = colecaoFotosInputEl.files?.length || 0;
   dropzoneLabelEl.querySelector('span').textContent = totalArquivos > 0
-    ? `${totalArquivos} arquivo(s) pronto(s) para envio ao CompreFace.`
+    ? `${totalArquivos} arquivo(s) pronto(s) para envio.`
     : 'Envie novas fotos para a coleção facial do usuário selecionado.';
 }
 
@@ -507,17 +508,12 @@ async function carregarImagemAutenticada(url, imgEl) {
 }
 
 function montarUrlImagemColecao(face) {
-  const fotoUrl = String(face?.foto_url || '').trim();
-  if (fotoUrl) {
-    return fotoUrl;
-  }
-
   const imageId = String(face?.image_id || face?.imageId || face?.id || '').trim();
   if (imageId) {
     return `${window.Auth.getApiBase()}/faces/${encodeURIComponent(imageId)}/img`;
   }
 
-  return null;
+  return String(face?.foto_url || '').trim() || null;
 }
 
 function limparPainelColecao(mensagem) {
@@ -536,7 +532,7 @@ function limparPainelColecao(mensagem) {
 
 function renderColecaoFaces() {
   if (!state.colecaoUsuario) {
-    limparPainelColecao('Selecione um usuário para visualizar as faces cadastradas no CompreFace.');
+    limparPainelColecao('Selecione um usuário para visualizar as faces cadastradas.');
     return;
   }
 
@@ -570,14 +566,14 @@ function renderColecaoFaces() {
     }
 
     card.querySelector('[data-image-id]')?.addEventListener('click', async () => {
-      const confirmou = window.confirm('Remover esta face da coleção do CompreFace?');
+      const confirmou = window.confirm('Remover esta face da colecao facial?');
       if (!confirmou) return;
 
       try {
         await window.Auth.apiJson(`/usuarios/${state.colecaoUsuario.id}/face-collection/${encodeURIComponent(face.image_id)}`, {
           method: 'DELETE',
         });
-        colecaoStatusEl.textContent = 'Face removida do CompreFace.';
+        colecaoStatusEl.textContent = 'Face removida da colecao facial.';
         await carregarColecaoFacial(state.colecaoUsuario);
       } catch (err) {
         console.error('[usuarios] erro ao remover face:', err);
@@ -590,7 +586,7 @@ function renderColecaoFaces() {
 }
 
 /**
- * Carrega a coleção facial do usuário escolhido, sincronizando grid de faces, contador e ações do CompreFace.
+ * Carrega a coleção facial do usuário escolhido, sincronizando grid de faces, contador e ações disponíveis.
  * @param {object} usuario Registro atualmente selecionado no painel lateral.
  * @returns {Promise<void>}
  */
@@ -598,13 +594,13 @@ async function carregarColecaoFacial(usuario) {
   state.colecaoUsuario = usuario;
   state.colecaoSetorAtual = obterChaveSetor(usuario.setor);
   colecaoTituloEl.textContent = `Coleção facial • ${usuario.nome_completo}`;
-  colecaoStatusEl.textContent = 'Carregando faces do CompreFace...';
+  colecaoStatusEl.textContent = 'Carregando faces cadastradas...';
   setColecaoBotoesHabilitados(true);
 
   try {
     const json = await window.Auth.apiJson(`/usuarios/${usuario.id}/face-collection`);
     state.colecaoFaces = Array.isArray(json?.data) ? json.data : [];
-    colecaoStatusEl.textContent = `${state.colecaoFaces.length} face(s) cadastrada(s) no CompreFace.`;
+    colecaoStatusEl.textContent = `${state.colecaoFaces.length} face(s) cadastrada(s).`;
     atualizarEstadoDropzone();
     renderColecaoFaces();
     renderPainelUsuarioSelecionado();
@@ -728,7 +724,7 @@ resetSenhaFormEl?.addEventListener('submit', async (event) => {
 adminExcluirBtn?.addEventListener('click', async () => {
   if (!state.colecaoUsuario?.id) return;
   const alvo = state.colecaoUsuario;
-  const confirmou = window.confirm(`Excluir definitivamente ${alvo.nome_completo}? Isso remove o usuário aqui e no CompreFace.`);
+  const confirmou = window.confirm(`Excluir definitivamente ${alvo.nome_completo}? Isso remove o usuário aqui e na colecao facial.`);
   if (!confirmou) return;
 
   adminExcluirBtn.disabled = true;
@@ -819,9 +815,9 @@ usuarioForm?.addEventListener('submit', async (event) => {
       throw new Error(json?.message || 'Falha ao criar usuário.');
     }
 
-    const totalFotos = Number(json?.compreface?.fotosEnviadas || 0);
+    const totalFotos = Number(json?.faceRecognition?.fotosEnviadas || json?.totalFotos || 0);
     usuariosStatusEl.textContent = totalFotos > 0
-      ? `Usuário criado e ${totalFotos} foto(s) enviada(s) ao CompreFace.`
+      ? `Usuário criado e ${totalFotos} foto(s) cadastrada(s).`
       : (json?.message || 'Usuário criado com sucesso.');
 
     fecharModalCadastro();
@@ -975,7 +971,7 @@ colecaoUploadBtn?.addEventListener('click', async () => {
 
   const formData = new FormData();
   fotos.forEach((foto) => formData.append('fotos', foto, foto.name));
-  colecaoStatusEl.textContent = 'Enviando fotos ao CompreFace...';
+  colecaoStatusEl.textContent = 'Enviando fotos...';
   colecaoUploadBtn.disabled = true;
 
   try {
@@ -993,7 +989,7 @@ colecaoUploadBtn?.addEventListener('click', async () => {
     }
 
     colecaoFotosInputEl.value = '';
-    colecaoStatusEl.textContent = json?.message || 'Fotos enviadas ao CompreFace.';
+    colecaoStatusEl.textContent = json?.message || 'Fotos cadastradas.';
     atualizarEstadoDropzone();
     await carregarColecaoFacial(state.colecaoUsuario);
   } catch (err) {
@@ -1007,14 +1003,14 @@ colecaoUploadBtn?.addEventListener('click', async () => {
 colecaoLimparBtn?.addEventListener('click', async () => {
   if (!state.colecaoUsuario) return;
 
-  const confirmou = window.confirm(`Remover todas as faces de ${state.colecaoUsuario.nome_completo} no CompreFace?`);
+  const confirmou = window.confirm(`Remover todas as faces de ${state.colecaoUsuario.nome_completo}?`);
   if (!confirmou) return;
 
   try {
     await window.Auth.apiJson(`/usuarios/${state.colecaoUsuario.id}/face-collection`, {
       method: 'DELETE',
     });
-    colecaoStatusEl.textContent = 'Coleção facial removida do CompreFace.';
+    colecaoStatusEl.textContent = 'Colecao facial removida.';
     await carregarColecaoFacial(state.colecaoUsuario);
   } catch (err) {
     console.error('[usuarios] erro ao limpar coleção:', err);
