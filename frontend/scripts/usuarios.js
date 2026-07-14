@@ -815,7 +815,7 @@ usuarioForm?.addEventListener('submit', async (event) => {
       throw new Error(json?.message || 'Falha ao criar usuário.');
     }
 
-    const totalFotos = Number(json?.faceRecognition?.fotosEnviadas || json?.totalFotos || 0);
+    const totalFotos = Number(json?.faceRecognition?.fotosEnviadas || json?.totalFotos || json?.faces?.length || 0);
     usuariosStatusEl.textContent = totalFotos > 0
       ? `Usuário criado e ${totalFotos} foto(s) cadastrada(s).`
       : (json?.message || 'Usuário criado com sucesso.');
