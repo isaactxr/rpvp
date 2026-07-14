@@ -73,7 +73,7 @@ router.delete('/usuarios/:id/face-collection/:imageId', autorizar(['admin']), co
 router.put('/usuarios/:id', autorizar(['admin']), controller.atualizarUsuario);
 router.patch('/usuarios/:id/perfil', autorizar(['admin']), controller.atualizarPerfilUsuario);
 router.delete('/usuarios/:id', autorizar(['admin']), controller.desativarUsuario);
-router.get('/compreface/faces/:imageId/img', autorizar(['admin']), controller.baixarImagemFaceCompreface);
+router.get('/faces/:faceId/img', autorizar(['admin']), controller.baixarImagemFace);
 
 // ─── Painel Admin ─────────────────────────────────────────────────────────────
 router.get('/admin/configuracoes',  autorizar(['admin']), adminController.listarConfiguracoes);

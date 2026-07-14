@@ -6,7 +6,6 @@
  * Concentra os handlers HTTP ligados a autenticação, reconhecimento facial, auditoria,
  * sessões e usuários, delegando as regras de negócio para a camada de serviços.
  */
-const compreFaceService = require('../services/compreFaceService');
 const faceRecognitionService = require('../services/faceRecognitionService');
 const usuarioFaceService = require('../services/usuarioFaceService');
 const presencaService = require('../services/presencaService');
@@ -516,37 +515,23 @@ async function listarUsuarios(req, res) {
 }
 
 /**
- * Cria um usuário no banco e, quando houver arquivos anexados, envia as fotos para a coleção facial do CompreFace.
+ * Cria um usuário no banco e persiste as fotos anexadas na coleção facial local.
  */
 async function criarUsuario(req, res) {
   try {
     const usuario = await usuarioService.criarUsuario(req.body || {});
     const arquivos = Array.isArray(req.files) ? req.files : [];
-    const subject = String(usuario.subject_compreface || '').trim();
-
-    let compreface = null;
-    if (subject) {
-      await compreFaceService.garantirSubject(subject);
-
-      const uploads = [];
-      for (const arquivo of arquivos) {
-        const enviado = await compreFaceService.enviarFaceParaSubject(subject, arquivo);
-        uploads.push(enviado);
-      }
-
-      compreface = {
-        subject,
-        fotosEnviadas: uploads.length,
-        imagens: uploads,
-      };
+    const faces = [];
+    for (const arquivo of arquivos) {
+      faces.push(await usuarioFaceService.criarFaceUsuario(usuario.id, arquivo));
     }
 
     res.status(201).json({
       success: true,
       data: usuario,
-      compreface,
+      faces,
       message: arquivos.length > 0
-        ? 'Usuário criado e fotos enviadas para o CompreFace.'
+        ? 'Usuário criado e fotos cadastradas.'
         : 'Usuário criado com sucesso.',
     });
   } catch (err) {
@@ -557,12 +542,7 @@ async function criarUsuario(req, res) {
 async function atualizarUsuario(req, res) {
   try {
     const usuarioId = Number(req.params.id);
-    const atual = await usuarioService.obterUsuarioPorId(usuarioId);
     const usuario = await usuarioService.atualizarUsuario(usuarioId, req.body || {});
-
-    if (atual.subject_compreface && usuario.subject_compreface && atual.subject_compreface !== usuario.subject_compreface) {
-      await compreFaceService.renomearSubject(atual.subject_compreface, usuario.subject_compreface);
-    }
 
     res.json({ success: true, data: usuario, message: 'Usuário atualizado com sucesso.' });
   } catch (err) {
@@ -591,17 +571,8 @@ async function desativarUsuario(req, res) {
     const hardDelete = String(req.query?.hard || '').toLowerCase() === 'true';
 
     if (hardDelete) {
-      const usuarioAtual = await usuarioService.obterUsuarioPorId(usuarioId);
-
-      if (usuarioAtual.subject_compreface) {
-        await compreFaceService.deletarSubject(usuarioAtual.subject_compreface).catch((err) => {
-          if (err.statusCode === 404) return null;
-          throw err;
-        });
-      }
-
       const usuario = await usuarioService.excluirUsuario(usuarioId);
-      res.json({ success: true, data: usuario, message: 'Usuário excluído definitivamente e removido do CompreFace.' });
+      res.json({ success: true, data: usuario, message: 'Usuário excluído definitivamente.' });
       return;
     }
 
@@ -615,28 +586,25 @@ async function desativarUsuario(req, res) {
 async function listarColecaoFacialUsuario(req, res) {
   try {
     const usuario = await usuarioService.obterUsuarioPorId(Number(req.params.id));
-    const subject = String(usuario.subject_compreface || usuario.nome_completo || '').trim();
-
-    const resultado = await compreFaceService.listarFacesPorSubject(subject);
+    const faces = await usuarioFaceService.listarFacesUsuario(usuario.id);
 
     res.json({
       success: true,
-      subject,
-      data: resultado.faces.map((face) => {
-        const imageId = String(face?.image_id || face?.imageId || face?.id || '').trim();
-        return {
-          ...face,
-          image_id: imageId || null,
-          foto_url: imageId
-            ? `/compreface/faces/${encodeURIComponent(imageId)}/img`
-            : null,
-        };
-      }),
+      subject: usuario.nome_completo,
+      data: faces.map((face) => ({
+        id: face.id,
+        image_id: String(face.id),
+        usuario_id: face.usuario_id,
+        content_type: face.content_type,
+        atualizado_em: face.atualizado_em,
+        tem_embedding: Boolean(face.tem_embedding),
+        foto_url: `/faces/${encodeURIComponent(face.id)}/img`,
+      })),
       pagination: {
-        pageNumber: resultado.pageNumber,
-        pageSize: resultado.pageSize,
-        totalPages: resultado.totalPages,
-        totalElements: resultado.totalElements,
+        pageNumber: 0,
+        pageSize: faces.length,
+        totalPages: faces.length > 0 ? 1 : 0,
+        totalElements: faces.length,
       },
     });
   } catch (err) {
@@ -647,7 +615,6 @@ async function listarColecaoFacialUsuario(req, res) {
 async function adicionarFotosColecaoUsuario(req, res) {
   try {
     const usuario = await usuarioService.obterUsuarioPorId(Number(req.params.id));
-    const subject = String(usuario.subject_compreface || usuario.nome_completo || '').trim();
     const arquivos = Array.isArray(req.files) ? req.files : [];
 
     if (arquivos.length === 0) {
@@ -656,19 +623,17 @@ async function adicionarFotosColecaoUsuario(req, res) {
       throw err;
     }
 
-    await compreFaceService.garantirSubject(subject);
-
     const imagens = [];
     for (const arquivo of arquivos) {
-      imagens.push(await compreFaceService.enviarFaceParaSubject(subject, arquivo));
+      imagens.push(await usuarioFaceService.criarFaceUsuario(usuario.id, arquivo));
     }
 
     res.status(201).json({
       success: true,
-      subject,
+      subject: usuario.nome_completo,
       total: imagens.length,
       data: imagens,
-      message: `${imagens.length} foto(s) enviada(s) ao CompreFace.`,
+      message: `${imagens.length} foto(s) cadastrada(s).`,
     });
   } catch (err) {
     responderErro(res, err, 'Erro ao adicionar fotos na coleção facial.');
@@ -677,8 +642,8 @@ async function adicionarFotosColecaoUsuario(req, res) {
 
 async function deletarFaceColecaoUsuario(req, res) {
   try {
-    const resultado = await compreFaceService.deletarFacePorId(req.params.imageId);
-    res.json({ success: true, data: resultado, message: 'Face removida do CompreFace.' });
+    const resultado = await usuarioFaceService.removerFaceUsuario(req.params.imageId, req.params.id);
+    res.json({ success: true, data: resultado, message: 'Face removida.' });
   } catch (err) {
     responderErro(res, err, 'Erro ao remover face da coleção facial.');
   }
@@ -687,21 +652,23 @@ async function deletarFaceColecaoUsuario(req, res) {
 async function limparColecaoFacialUsuario(req, res) {
   try {
     const usuario = await usuarioService.obterUsuarioPorId(Number(req.params.id));
-    const subject = String(usuario.subject_compreface || usuario.nome_completo || '').trim();
-    const resultado = await compreFaceService.deletarFacesPorSubject(subject);
-    res.json({ success: true, subject, ...resultado, message: 'Coleção facial removida do CompreFace.' });
+    const faces = await usuarioFaceService.listarFacesUsuario(usuario.id);
+    for (const face of faces) {
+      await usuarioFaceService.removerFaceUsuario(face.id, usuario.id);
+    }
+    res.json({ success: true, deleted: faces.length, message: 'Coleção facial removida.' });
   } catch (err) {
     responderErro(res, err, 'Erro ao limpar coleção facial do usuário.');
   }
 }
 
-async function baixarImagemFaceCompreface(req, res) {
+async function baixarImagemFace(req, res) {
   try {
-    const imagem = await compreFaceService.baixarImagemFace(req.params.imageId);
-    res.setHeader('Content-Type', imagem.contentType);
-    res.send(imagem.buffer);
+    const imagem = await usuarioFaceService.obterImagemFace(req.params.faceId);
+    res.setHeader('Content-Type', imagem.content_type || 'image/jpeg');
+    res.send(imagem.face);
   } catch (err) {
-    responderErro(res, err, 'Erro ao baixar imagem da coleção facial.');
+    responderErro(res, err, 'Erro ao baixar imagem facial.');
   }
 }
 
@@ -735,5 +702,5 @@ module.exports = {
   adicionarFotosColecaoUsuario,
   deletarFaceColecaoUsuario,
   limparColecaoFacialUsuario,
-  baixarImagemFaceCompreface,
+  baixarImagemFace,
 };
