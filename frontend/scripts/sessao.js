@@ -26,6 +26,9 @@ const CONFIG = {
   MIN_FACE_AREA_RATIO: 0.06,
   FRAMES_FECHADO_MIN: 2,
   FRAMES_ABERTO_MIN: 2,
+  FACE_MESH_INTERVAL_MS: 100,
+  CONTROLE_SESSAO_TIMEOUT_MS: 15000,
+  RECONHECIMENTO_TIMEOUT_MS: 20000,
   MP_VERSION: '0.4.1633559619',
   OLHO_DIREITO: [33, 160, 158, 133, 153, 144],
   OLHO_ESQUERDO: [362, 385, 387, 263, 373, 380],
@@ -83,6 +86,9 @@ const state = {
   cameraOrientation: null,
   cameraReconfigTimer: null,
   processando: false,
+  controleSessaoEmAndamento: false,
+  deteccaoPausada: false,
+  deteccaoAtiva: true,
   olhoFechado: false,
   ultimaCaptura: 0,
   framesFechado: 0,
@@ -391,20 +397,50 @@ function atualizarControlesExecucao() {
 }
 
 async function executarControleSessao(acao) {
+  if (state.controleSessaoEmAndamento) return;
+
   const endpoint = acao === 'iniciar' ? 'iniciar' : 'encerrar';
+  const pausaDeteccao = acao === 'encerrar';
+  const timeout = criarTimeoutSignal(
+    CONFIG.CONTROLE_SESSAO_TIMEOUT_MS,
+    acao === 'iniciar'
+      ? 'Tempo limite ao iniciar sessao.'
+      : 'Tempo limite ao encerrar sessao.'
+  );
+
+  state.controleSessaoEmAndamento = true;
+  if (pausaDeteccao) {
+    state.deteccaoPausada = true;
+    state.processando = false;
+  }
+  if (DOM.iniciarSessaoBtn) DOM.iniciarSessaoBtn.disabled = true;
+  if (DOM.encerrarSessaoBtn) DOM.encerrarSessaoBtn.disabled = true;
   if (DOM.acompanhamentoStatus) {
     DOM.acompanhamentoStatus.textContent = acao === 'iniciar' ? 'Iniciando sessão...' : 'Encerrando sessão...';
   }
 
   try {
-    await window.Auth.apiJson(`/sessoes/${encodeURIComponent(state.sessaoId)}/${endpoint}`, { method: 'POST' });
+    await window.Auth.apiJson(`/sessoes/${encodeURIComponent(state.sessaoId)}/${endpoint}`, {
+      method: 'POST',
+      signal: timeout.signal,
+    });
     await carregarSessao();
     await carregarAcompanhamento();
     if (DOM.acompanhamentoStatus) {
       DOM.acompanhamentoStatus.textContent = 'Sessão atualizada com sucesso.';
     }
   } catch (err) {
-    if (DOM.acompanhamentoStatus) DOM.acompanhamentoStatus.textContent = err.message;
+    const mensagem = err.name === 'AbortError'
+      ? timeout.signal.reason?.message || 'Tempo limite ao atualizar sessao.'
+      : err.message;
+    if (DOM.acompanhamentoStatus) DOM.acompanhamentoStatus.textContent = mensagem;
+  } finally {
+    timeout.finalizar();
+    state.controleSessaoEmAndamento = false;
+    if (!state.sessao?.fim_efetivo_em) {
+      state.deteccaoPausada = false;
+    }
+    atualizarControlesExecucao();
   }
 }
 
@@ -860,16 +896,44 @@ function esperar(ms) {
   return new Promise((resolve) => setTimeout(resolve, Math.max(0, Number(ms) || 0)));
 }
 
+function criarTimeoutSignal(ms, mensagem) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => {
+    controller.abort(new Error(mensagem));
+  }, Math.max(1, Number(ms) || 1));
+
+  return {
+    signal: controller.signal,
+    finalizar: () => clearTimeout(timeoutId),
+  };
+}
+
 async function enviarImagem(blob) {
   const body = new FormData();
   body.append('file', blob, 'face.jpg');
   body.append('tipoRegistro', 'auto');
   body.append('sessaoId', String(state.sessaoId));
 
-  const res = await window.Auth.authFetch(CONFIG.BACKEND_URL, {
-    method: 'POST',
-    body,
-  });
+  const timeout = criarTimeoutSignal(
+    CONFIG.RECONHECIMENTO_TIMEOUT_MS,
+    'Tempo limite ao processar reconhecimento facial.'
+  );
+  let res;
+
+  try {
+    res = await window.Auth.authFetch(CONFIG.BACKEND_URL, {
+      method: 'POST',
+      body,
+      signal: timeout.signal,
+    });
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      throw new Error(timeout.signal.reason?.message || 'Tempo limite ao processar reconhecimento facial.');
+    }
+    throw err;
+  } finally {
+    timeout.finalizar();
+  }
 
   if (!res.ok) {
     let mensagem = `Backend retornou HTTP ${res.status}: ${res.statusText}`;
@@ -888,6 +952,10 @@ async function enviarImagem(blob) {
 async function onRostoDetectado(results) {
   ctx.clearRect(0, 0, DOM.canvas.width, DOM.canvas.height);
 
+  if (state.deteccaoPausada || state.controleSessaoEmAndamento) {
+    return;
+  }
+
   if (!results.multiFaceLandmarks?.length) {
     setStatus('Posicione seu rosto', 'info');
     state.olhoFechado = false;
@@ -903,6 +971,7 @@ async function onRostoDetectado(results) {
   }
 
   if (state.sessao.fim_efetivo_em) {
+    state.deteccaoAtiva = false;
     setStatus('Sessão encerrada. Verificação facial desativada.', 'aviso');
     DOM.earValue.textContent = '—';
     return;
@@ -973,6 +1042,11 @@ async function onRostoDetectado(results) {
 
 function atualizarVisibilidadePorEstadoSessao() {
   const encerrou = Boolean(state.sessao?.fim_efetivo_em);
+  if (encerrou) {
+    state.deteccaoAtiva = false;
+    state.deteccaoPausada = true;
+    state.processando = false;
+  }
 
   DOM.sessaoControleCard?.classList.toggle('hidden', encerrou);
   DOM.sessaoFaceCard?.classList.toggle('hidden', encerrou);
@@ -1111,9 +1185,29 @@ async function detectarRosto() {
   faceMesh.onResults(onRostoDetectado);
 
   let emEnvio = false;
+  let ultimoProcessamento = 0;
   async function loop() {
-    if (!emEnvio && DOM.video.readyState >= HTMLMediaElement.HAVE_ENOUGH_DATA) {
+    if (!state.deteccaoAtiva) {
+      try {
+        faceMesh.close?.();
+      } catch (_err) {
+        // ignora falha ao liberar recursos do detector
+      }
+      return;
+    }
+
+    const agora = Date.now();
+    const podeProcessarFrame = agora - ultimoProcessamento >= CONFIG.FACE_MESH_INTERVAL_MS;
+
+    if (
+      !state.deteccaoPausada
+      && !state.controleSessaoEmAndamento
+      && !emEnvio
+      && podeProcessarFrame
+      && DOM.video.readyState >= HTMLMediaElement.HAVE_ENOUGH_DATA
+    ) {
       emEnvio = true;
+      ultimoProcessamento = agora;
       try {
         await faceMesh.send({ image: DOM.video });
       } catch (_err) {
