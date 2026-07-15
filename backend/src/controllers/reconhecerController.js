@@ -16,6 +16,7 @@ const usuarioService = require('../services/usuarioService');
 const authService = require('../services/authService');
 const auditoriaService = require('../services/auditoriaService');
 const auditoriaExportService = require('../services/auditoriaExportService');
+const usuarioImportExportService = require('../services/usuarioImportExportService');
 
 function responderErro(res, err, fallback) {
   console.error(`[controller] ${fallback}: ${err.message}`);
@@ -513,6 +514,38 @@ async function listarUsuarios(req, res) {
   }
 }
 
+async function exportarUsuarios(req, res) {
+  try {
+    const arquivo = await usuarioImportExportService.exportarUsuariosZip();
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', `attachment; filename="${arquivo.filename}"`);
+    res.setHeader('X-Usuarios-Total', String(arquivo.totalUsuarios));
+    res.setHeader('X-Faces-Total', String(arquivo.totalFaces));
+    res.send(arquivo.buffer);
+  } catch (err) {
+    responderErro(res, err, 'Erro ao exportar usuarios.');
+  }
+}
+
+async function importarUsuarios(req, res) {
+  try {
+    if (!req.file?.buffer) {
+      const err = new Error('Envie o arquivo ZIP no campo arquivo.');
+      err.statusCode = 400;
+      throw err;
+    }
+
+    const resultado = await usuarioImportExportService.importarUsuariosZip(req.file.buffer);
+    res.json({
+      success: true,
+      data: resultado,
+      message: `Importacao concluida: ${resultado.criados} criado(s), ${resultado.atualizados} atualizado(s), ${resultado.faces} face(s).`,
+    });
+  } catch (err) {
+    responderErro(res, err, 'Erro ao importar usuarios.');
+  }
+}
+
 /**
  * Cria um usuário no banco e persiste as fotos anexadas na coleção facial local.
  */
@@ -689,6 +722,8 @@ module.exports = {
   exportarAcompanhamentoSessaoExcel,
   listarSetores,
   listarUsuarios,
+  exportarUsuarios,
+  importarUsuarios,
   criarUsuario,
   atualizarUsuario,
   desativarUsuario,

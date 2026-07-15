@@ -17,6 +17,11 @@ const multer = require('multer');
 
 const MIME_PERMITIDOS = new Set(['image/jpeg', 'image/png', 'image/webp']);
 const TAMANHO_MAX_MB  = 5;
+const ZIP_MIME_PERMITIDOS = new Set([
+  'application/zip',
+  'application/x-zip-compressed',
+  'application/octet-stream',
+]);
 
 const storage = multer.memoryStorage();
 
@@ -40,6 +45,25 @@ const upload = multer({
   },
 });
 
+function filtroArquivoZip(_req, file, callback) {
+  const nome = String(file.originalname || '').toLowerCase();
+  if (!nome.endsWith('.zip') || !ZIP_MIME_PERMITIDOS.has(file.mimetype)) {
+    const err = new Error('Arquivo de importacao invalido. Envie um ZIP exportado pelo sistema.');
+    err.code = 'INVALID_IMPORT_FILE_TYPE';
+    return callback(err);
+  }
+  callback(null, true);
+}
+
+const uploadImportacaoUsuarios = multer({
+  storage,
+  fileFilter: filtroArquivoZip,
+  limits: {
+    fileSize: 100 * 1024 * 1024,
+    files: 1,
+  },
+});
+
 /**
  * Middleware de tratamento de erros do Multer.
  * Deve ser usado APÓS o middleware de upload nas rotas.
@@ -47,6 +71,10 @@ const upload = multer({
 function tratarErroUpload(err, _req, res, next) {
   if (err?.code === 'INVALID_FILE_TYPE') {
     return res.status(400).json({ success: false, reconhecido: false, message: err.message });
+  }
+
+  if (err?.code === 'INVALID_IMPORT_FILE_TYPE') {
+    return res.status(400).json({ success: false, message: err.message });
   }
 
   if (err instanceof multer.MulterError) {
@@ -60,4 +88,4 @@ function tratarErroUpload(err, _req, res, next) {
   next(err);
 }
 
-module.exports = { upload, tratarErroUpload };
+module.exports = { upload, uploadImportacaoUsuarios, tratarErroUpload };

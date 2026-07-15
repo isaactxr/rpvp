@@ -21,7 +21,7 @@
         <div class="collection-shell">
           <aside class="subjects-panel">
             <div class="subjects-panel-header">
-              <h3>Subjects</h3>
+              <h3>Usuários</h3>
               <input id="usuariosSearch" type="search" placeholder="Buscar usuário..." />
             </div>
 
@@ -32,6 +32,9 @@
             <div class="subjects-panel-footer">
               <button id="voltarSetoresBtn" type="button" class="ghost-btn hidden">Voltar para setores</button>
               <button id="refreshBtn" type="button" class="ghost-btn">Atualizar lista</button>
+              <button id="exportUsuariosBtn" type="button" class="ghost-btn">Exportar usuários</button>
+              <button id="importUsuariosBtn" type="button" class="ghost-btn">Importar usuários</button>
+              <input id="importUsuariosInput" type="file" accept=".zip,application/zip" hidden />
               <button id="openCadastroModalBtn" type="button" class="primary-btn">Criar usuário</button>
             </div>
           </aside>
@@ -70,7 +73,7 @@
                   <span class="eyebrow">Admin</span>
                   <h2>Usuário selecionado</h2>
                 </div>
-                <span id="usuarioSelecionadoStatus" class="muted-text">Selecione um usuário no Face Collection para gerenciar.</span>
+                <span id="usuarioSelecionadoStatus" class="muted-text">Selecione um usuário na coleção facial para gerenciar.</span>
               </div>
 
               <form id="usuarioAdminForm" class="session-form">
@@ -222,8 +225,6 @@
 
   <script src="../scripts/auth.js?v=20260426b"></script>
   <script src="../components/internal-layout.js?v=20260426b"></script>
-  <script src="../scripts/usuarios.js?v=20260331d"></script>
+  <script src="../scripts/usuarios.js?v=20260715b"></script>
 </body>
 </html>
-
-

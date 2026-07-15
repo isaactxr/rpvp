@@ -16,6 +16,9 @@ const openCadastroModalBtn = document.getElementById('openCadastroModalBtn');
 const usuariosSearchEl = document.getElementById('usuariosSearch');
 const subjectsListEl = document.getElementById('subjectsList');
 const voltarSetoresBtn = document.getElementById('voltarSetoresBtn');
+const exportUsuariosBtn = document.getElementById('exportUsuariosBtn');
+const importUsuariosBtn = document.getElementById('importUsuariosBtn');
+const importUsuariosInput = document.getElementById('importUsuariosInput');
 const usuarioSelecionadoStatusEl = document.getElementById('usuarioSelecionadoStatus');
 
 const usuarioAdminFormEl = document.getElementById('usuarioAdminForm');
@@ -306,7 +309,7 @@ function renderPainelUsuarioSelecionado() {
 
   usuarioSelecionadoStatusEl.textContent = habilitado
     ? `Gerenciando ${usuario.nome_completo}.`
-    : 'Selecione um usuário no Face Collection para gerenciar.';
+    : 'Selecione um usuário na coleção facial para gerenciar.';
 }
 
 function abrirModalCadastro() {
@@ -765,6 +768,72 @@ async function atualizarUsuario(usuarioId, payload, mensagemSucesso) {
   }
 }
 
+function obterNomeArquivoResposta(response, fallback) {
+  const header = response.headers.get('content-disposition') || '';
+  const match = header.match(/filename="?([^"]+)"?/i);
+  return match?.[1] || fallback;
+}
+
+async function exportarUsuarios() {
+  exportUsuariosBtn.disabled = true;
+  usuariosStatusEl.textContent = 'Gerando exportacao de usuarios...';
+
+  try {
+    const response = await window.Auth.authFetch(`${window.Auth.getApiBase()}/usuarios/export`);
+    if (!response.ok) {
+      const erro = await response.json().catch(() => ({}));
+      throw new Error(erro?.message || 'Falha ao exportar usuarios.');
+    }
+
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = obterNomeArquivoResposta(response, 'usuarios_export.zip');
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    usuariosStatusEl.textContent = 'Exportacao de usuarios gerada.';
+  } catch (err) {
+    console.error('[usuarios] erro ao exportar usuarios:', err);
+    usuariosStatusEl.textContent = err.message;
+  } finally {
+    exportUsuariosBtn.disabled = false;
+  }
+}
+
+async function importarUsuariosArquivo(file) {
+  if (!file) return;
+
+  const confirmou = window.confirm(
+    'Importar este ZIP vai criar/atualizar usuarios e substituir a colecao facial dos usuarios importados. Continuar?'
+  );
+  if (!confirmou) return;
+
+  importUsuariosBtn.disabled = true;
+  usuariosStatusEl.textContent = 'Importando usuarios...';
+
+  try {
+    const formData = new FormData();
+    formData.append('arquivo', file, file.name);
+
+    const json = await window.Auth.apiJson('/usuarios/import', {
+      method: 'POST',
+      body: formData,
+    });
+
+    usuariosStatusEl.textContent = json?.message || 'Importacao concluida.';
+    await carregarUsuarios();
+  } catch (err) {
+    console.error('[usuarios] erro ao importar usuarios:', err);
+    usuariosStatusEl.textContent = err.message;
+  } finally {
+    importUsuariosBtn.disabled = false;
+    if (importUsuariosInput) importUsuariosInput.value = '';
+  }
+}
+
 usuarioForm?.addEventListener('submit', async (event) => {
   event.preventDefault();
   usuariosStatusEl.textContent = 'Criando usuário...';
@@ -845,6 +914,19 @@ usuarioForm?.addEventListener('submit', async (event) => {
 
 refreshBtn?.addEventListener('click', async () => {
   await carregarUsuarios();
+});
+
+exportUsuariosBtn?.addEventListener('click', async () => {
+  await exportarUsuarios();
+});
+
+importUsuariosBtn?.addEventListener('click', () => {
+  importUsuariosInput?.click();
+});
+
+importUsuariosInput?.addEventListener('change', async () => {
+  const file = importUsuariosInput.files?.[0] || null;
+  await importarUsuariosArquivo(file);
 });
 
 openCadastroModalBtn?.addEventListener('click', () => {

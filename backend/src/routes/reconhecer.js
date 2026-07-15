@@ -11,7 +11,7 @@ const express = require('express');
 const controller = require('../controllers/reconhecerController');
 const adminController = require('../controllers/adminController');
 const config = require('../config/env');
-const { upload, tratarErroUpload } = require('../middleware/upload');
+const { upload, uploadImportacaoUsuarios, tratarErroUpload } = require('../middleware/upload');
 const { autenticar, autorizar } = require('../middleware/auth');
 
 const router = express.Router();
@@ -53,6 +53,14 @@ router.get('/sessoes/:id/acompanhamento/export/excel', autorizar(['admin', 'gest
 
 router.get('/setores', autorizar(['admin', 'gestor', 'instrutor']), controller.listarSetores);
 router.get('/usuarios', autorizar(['admin', 'gestor']), controller.listarUsuarios);
+router.get('/usuarios/export', autorizar(['admin']), controller.exportarUsuarios);
+router.post(
+  '/usuarios/import',
+  autorizar(['admin']),
+  uploadImportacaoUsuarios.single('arquivo'),
+  tratarErroUpload,
+  controller.importarUsuarios
+);
 router.post(
   '/usuarios',
   autorizar(['admin']),
