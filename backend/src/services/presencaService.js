@@ -74,11 +74,40 @@ async function salvarImagemAuditoria(presencaId, imagemAuditada, tipoRegistro = 
   );
 }
 
-async function obterOuCriarUsuario(subject, nomeCompleto = subject) {
+async function obterUsuarioPorId(usuarioId) {
+  const id = Number(usuarioId);
+  if (!Number.isInteger(id) || id <= 0) {
+    const err = new Error('Usuario invalido para registro de presenca.');
+    err.statusCode = 400;
+    throw err;
+  }
+
+  const result = await db.query(
+    'SELECT id, nome_completo, perfil_acesso FROM usuarios WHERE id = $1 AND ativo = true',
+    [id]
+  );
+
+  if (result.rows.length === 0) {
+    const err = new Error('Usuario reconhecido nao encontrado ou inativo.');
+    err.statusCode = 404;
+    throw err;
+  }
+
+  return result.rows[0];
+}
+
+async function obterOuCriarUsuario(nomeCompleto) {
   try {
+    const nome = String(nomeCompleto || '').trim();
+    if (!nome) {
+      const err = new Error('Nome do usuario invalido.');
+      err.statusCode = 400;
+      throw err;
+    }
+
     let result = await db.query(
-      'SELECT id, nome_completo, subject, perfil_acesso FROM usuarios WHERE subject = $1',
-      [subject]
+      'SELECT id, nome_completo, perfil_acesso FROM usuarios WHERE nome_completo = $1 ORDER BY id ASC LIMIT 1',
+      [nome]
     );
 
     if (result.rows.length > 0) {
@@ -86,13 +115,13 @@ async function obterOuCriarUsuario(subject, nomeCompleto = subject) {
     }
 
     result = await db.query(
-      `INSERT INTO usuarios (nome_completo, subject)
-       VALUES ($1, $2)
-       RETURNING id, nome_completo, subject, perfil_acesso`,
-      [nomeCompleto, subject]
+      `INSERT INTO usuarios (nome_completo)
+       VALUES ($1)
+       RETURNING id, nome_completo, perfil_acesso`,
+      [nome]
     );
 
-    console.log(`[presença] Usuário criado: ${subject} (${nomeCompleto})`);
+    console.log(`[presenca] Usuario criado: ${nome}`);
     return result.rows[0];
   } catch (err) {
     console.error(`[presença] Erro ao criar/obter usuário: ${err.message}`);
@@ -100,9 +129,9 @@ async function obterOuCriarUsuario(subject, nomeCompleto = subject) {
   }
 }
 
-async function jaRegistradoHoje(subject, sessaoId = null) {
+async function jaRegistradoHoje(nomeCompleto, sessaoId = null) {
   try {
-    const usuario = await obterOuCriarUsuario(subject);
+    const usuario = await obterOuCriarUsuario(nomeCompleto);
     const hoje = _hojeLocal();
     const sessaoNormalizada = normalizarSessaoId(sessaoId);
 
@@ -123,9 +152,9 @@ async function jaRegistradoHoje(subject, sessaoId = null) {
   }
 }
 
-async function estaNoCooldown(subject) {
+async function estaNoCooldown(nomeCompleto) {
   try {
-    const usuario = await obterOuCriarUsuario(subject);
+    const usuario = await obterOuCriarUsuario(nomeCompleto);
 
     const result = await db.query(
       'SELECT criado_em FROM presencas WHERE usuario_id = $1 ORDER BY criado_em DESC LIMIT 1',
@@ -145,9 +174,9 @@ async function estaNoCooldown(subject) {
   }
 }
 
-async function registrarPresenca(subject, similarity, imagemAuditada = null, sessaoId = null) {
+async function registrarPresenca(nomeCompleto, similarity, imagemAuditada = null, sessaoId = null) {
   try {
-    const usuario = await obterOuCriarUsuario(subject);
+    const usuario = await obterOuCriarUsuario(nomeCompleto);
     const sessaoNormalizada = normalizarSessaoId(sessaoId);
 
     const result = await db.query(
@@ -190,11 +219,11 @@ async function registrarPresenca(subject, similarity, imagemAuditada = null, ses
  * - respeita o tempo mínimo configurado para checkout;
  * - bloqueia duplicidade por sessão e, em alguns cenários, por tipo de sessão no mesmo dia.
  *
- * @param {{subject:string, similarity:number, imagemAuditada?:{buffer:Buffer, contentType:string}|null, sessaoId?:number|string|null, tipoRegistro?:'auto'|'checkin'|'checkout'}} params
+ * @param {{usuarioId:number|string, similarity:number, imagemAuditada?:{buffer:Buffer, contentType:string}|null, sessaoId?:number|string|null, tipoRegistro?:'auto'|'checkin'|'checkout'}} params
  * @returns {Promise<object>} Resultado consolidado para a resposta HTTP do reconhecimento.
  */
 async function registrarBatidaFacial({
-  subject,
+  usuarioId,
   similarity,
   imagemAuditada = null,
   sessaoId = null,
@@ -207,7 +236,7 @@ async function registrarBatidaFacial({
     throw err;
   }
 
-  const usuario = await obterOuCriarUsuario(subject);
+  const usuario = await obterUsuarioPorId(usuarioId);
   const data = _hojeLocal();
   const sessaoNormalizada = normalizarSessaoId(sessaoId);
 

@@ -200,7 +200,6 @@ async function listarUsuarios({ perfil, ativo, busca, gestorId } = {}) {
   const result = await db.query(
     `SELECT u.id,
             u.nome_completo,
-            u.subject,
           u.cpf,
             u.usuario,
             u.perfil_acesso,
@@ -241,16 +240,15 @@ async function criarUsuario(payload) {
   const gestorId = normalizarGestorId(payload.gestorId);
   const setorEntrada = payload.setor ? String(payload.setor).trim() || null : null;
   const setor = await obterOuCriarSetor(setorEntrada);
-  const subject = nomeCompleto;
 
   await validarGestor(gestorId);
   await validarCpfUnico(cpf);
 
   const result = await db.query(
-    `INSERT INTO usuarios (nome_completo, cpf, usuario, senha_hash, perfil_acesso, ativo, reset_senha_primeiro_acesso, gestor_id, setor_id, subject)
-     VALUES ($1, $2, $3, $4, $5, true, $6, $7, $8, COALESCE($9, CONCAT('user-', EXTRACT(EPOCH FROM NOW())::bigint, '-', floor(random()*99999)::int)))
-     RETURNING id, nome_completo, cpf, usuario, perfil_acesso, ativo, reset_senha_primeiro_acesso, gestor_id, setor_id, subject, criado_em`,
-    [nomeCompleto, cpf, usuario, senhaHash, perfilAcesso, resetSenhaPrimeiroAcesso, gestorId, setor.id, subject]
+    `INSERT INTO usuarios (nome_completo, cpf, usuario, senha_hash, perfil_acesso, ativo, reset_senha_primeiro_acesso, gestor_id, setor_id)
+     VALUES ($1, $2, $3, $4, $5, true, $6, $7, $8)
+     RETURNING id, nome_completo, cpf, usuario, perfil_acesso, ativo, reset_senha_primeiro_acesso, gestor_id, setor_id, criado_em`,
+    [nomeCompleto, cpf, usuario, senhaHash, perfilAcesso, resetSenhaPrimeiroAcesso, gestorId, setor.id]
   );
 
   return result.rows[0];
@@ -276,10 +274,6 @@ async function atualizarUsuario(usuarioId, payload) {
     novoNomeCompleto = normalizarTexto(payload.nomeCompleto, 'o nome completo');
     valores.push(novoNomeCompleto);
     set.push(`nome_completo = $${valores.length}`);
-    if (payload.subject === undefined) {
-      valores.push(novoNomeCompleto);
-      set.push(`subject = $${valores.length}`);
-    }
   }
 
   if (payload.usuario !== undefined) {
@@ -322,15 +316,6 @@ async function atualizarUsuario(usuarioId, payload) {
     set.push(`setor_id = $${valores.length}`);
   }
 
-  if (payload.subject !== undefined) {
-    const subject = String(payload.subject || '').trim();
-    if (!subject) {
-      throw criarErroValidacao('subject não pode ficar vazio.');
-    }
-    valores.push(subject);
-    set.push(`subject = $${valores.length}`);
-  }
-
   if (payload.senha !== undefined && String(payload.senha).trim()) {
     valores.push(hashSenha(normalizarSenha(payload.senha)));
     set.push(`senha_hash = $${valores.length}`);
@@ -345,7 +330,7 @@ async function atualizarUsuario(usuarioId, payload) {
     `UPDATE usuarios
      SET ${set.join(', ')}, atualizado_em = CURRENT_TIMESTAMP
      WHERE id = $${valores.length}
-    RETURNING id, nome_completo, cpf, usuario, perfil_acesso, ativo, reset_senha_primeiro_acesso, gestor_id, setor_id, subject, atualizado_em`,
+    RETURNING id, nome_completo, cpf, usuario, perfil_acesso, ativo, reset_senha_primeiro_acesso, gestor_id, setor_id, atualizado_em`,
     valores
   );
 
@@ -369,7 +354,7 @@ async function atualizarPerfil(usuarioId, perfil) {
      SET perfil_acesso = $1,
          atualizado_em = CURRENT_TIMESTAMP
      WHERE id = $2
-     RETURNING id, nome_completo, subject, perfil_acesso, atualizado_em`,
+     RETURNING id, nome_completo, perfil_acesso, atualizado_em`,
     [perfilNormalizado, usuarioId]
   );
 
@@ -394,7 +379,6 @@ async function obterUsuarioPorId(usuarioId) {
   const result = await db.query(
     `SELECT u.id,
             u.nome_completo,
-            u.subject,
           u.cpf,
             u.usuario,
             u.perfil_acesso,
@@ -430,7 +414,7 @@ async function excluirUsuario(usuarioId) {
   const result = await db.query(
     `DELETE FROM usuarios
      WHERE id = $1
-     RETURNING id, nome_completo, usuario, perfil_acesso, subject`,
+     RETURNING id, nome_completo, usuario, perfil_acesso`,
     [usuarioId]
   );
 

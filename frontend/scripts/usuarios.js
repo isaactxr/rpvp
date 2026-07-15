@@ -362,8 +362,7 @@ function filtrarUsuariosColecao() {
   if (!termo) return state.usuarios;
 
   return state.usuarios.filter((usuario) => {
-    const subject = usuario.subject || Object.entries(usuario).find(([key]) => key.startsWith('subject_'))?.[1];
-    return [usuario.nome_completo, usuario.usuario, subject, usuario.setor]
+    return [usuario.nome_completo, usuario.usuario, usuario.setor]
       .filter(Boolean)
       .some((valor) => String(valor).toLowerCase().includes(termo));
   });
@@ -389,7 +388,7 @@ function renderListaSetores(usuariosFiltrados) {
   setores.forEach(([setor, usuarios]) => {
     const button = document.createElement('button');
     button.type = 'button';
-    button.className = 'subject-item';
+    button.className = 'user-item';
     button.innerHTML = `
       <strong>${escapeHtml(setor)}</strong>
       <span>${usuarios.length} usuário(s)</span>
@@ -424,7 +423,7 @@ function renderListaUsuariosDoSetor(usuariosFiltrados) {
     .forEach((usuario) => {
       const button = document.createElement('button');
       button.type = 'button';
-      button.className = 'subject-item';
+      button.className = 'user-item';
       if (state.colecaoUsuario?.id === usuario.id) {
         button.classList.add('active');
       }
@@ -432,7 +431,7 @@ function renderListaUsuariosDoSetor(usuariosFiltrados) {
       const totalFaces = state.colecaoUsuario?.id === usuario.id ? state.colecaoFaces.length : null;
       button.innerHTML = `
         <strong>${escapeHtml(usuario.nome_completo || '-')}</strong>
-        <span>${escapeHtml(usuario.subject || Object.entries(usuario).find(([key]) => key.startsWith('subject_'))?.[1] || usuario.usuario || '-')}</span>
+        <span>${escapeHtml(usuario.usuario || '-')}</span>
         <span>${usuario.ativo ? 'Ativo' : 'Inativo'}${totalFaces !== null ? ` • ${totalFaces} imagem(ns)` : ''}</span>
       `;
       button.addEventListener('click', async () => {

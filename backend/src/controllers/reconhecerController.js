@@ -151,7 +151,6 @@ async function reconhecer(req, res) {
   }
 
   const usuarioReconhecido = await usuarioService.obterUsuarioPorId(resultado.usuarioId);
-  const subject = usuarioReconhecido.subject || usuarioReconhecido.nome_completo;
   const similarity = resultado.distance === null ? null : Math.max(0, 1 - resultado.distance);
 
   let imagemAuditada = null;
@@ -174,7 +173,7 @@ async function reconhecer(req, res) {
 
   try {
     const registro = await presencaService.registrarBatidaFacial({
-      subject,
+      usuarioId: usuarioReconhecido.id,
       similarity,
       imagemAuditada,
       sessaoId,
@@ -185,7 +184,7 @@ async function reconhecer(req, res) {
       success: true,
       reconhecido: true,
       message: registro.message,
-      user: registro.nomeCompleto || subject,
+      user: registro.nomeCompleto || usuarioReconhecido.nome_completo,
       userId: registro.userId,
       sessaoId: registro.sessaoId,
       tipoRegistro: registro.tipo,
@@ -590,7 +589,6 @@ async function listarColecaoFacialUsuario(req, res) {
 
     res.json({
       success: true,
-      subject: usuario.subject || usuario.nome_completo,
       data: faces.map((face) => ({
         id: face.id,
         image_id: String(face.id),
@@ -630,7 +628,6 @@ async function adicionarFotosColecaoUsuario(req, res) {
 
     res.status(201).json({
       success: true,
-      subject: usuario.subject || usuario.nome_completo,
       total: imagens.length,
       data: imagens,
       message: `${imagens.length} foto(s) cadastrada(s).`,
