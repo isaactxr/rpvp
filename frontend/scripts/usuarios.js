@@ -391,7 +391,7 @@ function renderListaSetores(usuariosFiltrados) {
   setores.forEach(([setor, usuarios]) => {
     const button = document.createElement('button');
     button.type = 'button';
-    button.className = 'user-item';
+    button.className = 'subject-item user-item';
     button.innerHTML = `
       <strong>${escapeHtml(setor)}</strong>
       <span>${usuarios.length} usuário(s)</span>
@@ -426,7 +426,7 @@ function renderListaUsuariosDoSetor(usuariosFiltrados) {
     .forEach((usuario) => {
       const button = document.createElement('button');
       button.type = 'button';
-      button.className = 'user-item';
+      button.className = 'subject-item user-item';
       if (state.colecaoUsuario?.id === usuario.id) {
         button.classList.add('active');
       }
