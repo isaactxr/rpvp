@@ -31,8 +31,9 @@
         <div id="encerradasFiltrosWrap" class="filters-grid hidden">
           <label>
             <span>Tipo da sessão</span>
-            <input id="filtroEncerradasTipo" list="filtroEncerradasTipoDatalist" type="text" placeholder="Todos os tipos" />
-            <datalist id="filtroEncerradasTipoDatalist"></datalist>
+            <select id="filtroEncerradasTipo">
+              <option value="">Todos os tipos</option>
+            </select>
           </label>
           <label>
             <span>Data inicial</span>
@@ -64,8 +65,9 @@
         </label>
         <label class="field-span-2">
           <span>Tipo de sessão</span>
-          <input id="sessaoTipo" type="text" placeholder="Ex.: Laboral, Treinamento" autocomplete="off" required />
-          <div id="sessaoTipoSugestoes" class="suggestions-list hidden"></div>
+          <select id="sessaoTipo" required>
+            <option value="" selected disabled>Selecione um tipo cadastrado</option>
+          </select>
         </label>
         <label class="field-span-2">
           <span>Local (opcional)</span>
@@ -95,9 +97,8 @@
 
   <script src="../scripts/auth.js?v=20260426b"></script>
   <script src="../components/internal-layout.js?v=20260426b"></script>
-  <script src="../scripts/sessoes.js?v=20260409a"></script>
+  <script src="../scripts/sessoes.js?v=20260715b"></script>
 </body>
 </html>
-
 
 

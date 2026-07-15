@@ -17,7 +17,6 @@ const cancelarCriarSessaoBtn = document.getElementById('cancelarCriarSessaoBtn')
 const sessaoForm = document.getElementById('sessaoForm');
 const sessaoInstrutorNomeEl = document.getElementById('sessaoInstrutorNome');
 const sessaoTipoEl = document.getElementById('sessaoTipo');
-const sessaoTipoSugestoesEl = document.getElementById('sessaoTipoSugestoes');
 const sessaoDescricaoEl = document.getElementById('sessaoDescricao');
 const sessaoLocalEl = document.getElementById('sessaoLocal');
 const sessaoCheckoutHabilitadoEl = document.getElementById('sessaoCheckoutHabilitado');
@@ -25,7 +24,6 @@ const mostrarEncerradasHojeChk = document.getElementById('mostrarEncerradasHojeC
 const mostrarEncerradasWrap = document.getElementById('mostrarEncerradasWrap');
 const encerradasFiltrosWrap = document.getElementById('encerradasFiltrosWrap');
 const filtroEncerradasTipoEl = document.getElementById('filtroEncerradasTipo');
-const filtroEncerradasTipoDatalistEl = document.getElementById('filtroEncerradasTipoDatalist');
 const filtroEncerradasDataInicioEl = document.getElementById('filtroEncerradasDataInicio');
 const filtroEncerradasDataFimEl = document.getElementById('filtroEncerradasDataFim');
 const limparFiltrosEncerradasBtn = document.getElementById('limparFiltrosEncerradasBtn');
@@ -153,13 +151,39 @@ function atualizarVisibilidadeFiltrosEncerradas() {
 }
 
 function preencherTiposFiltrosEncerradas() {
-  if (!filtroEncerradasTipoDatalistEl) return;
-  filtroEncerradasTipoDatalistEl.innerHTML = '';
+  if (!filtroEncerradasTipoEl) return;
+  const valorAtual = filtroEncerradasTipoEl.value;
+  filtroEncerradasTipoEl.innerHTML = '<option value="">Todos os tipos</option>';
   state.tiposSessao.forEach((nome) => {
     const option = document.createElement('option');
     option.value = nome;
-    filtroEncerradasTipoDatalistEl.appendChild(option);
+    option.textContent = nome;
+    filtroEncerradasTipoEl.appendChild(option);
   });
+  filtroEncerradasTipoEl.value = state.tiposSessao.includes(valorAtual) ? valorAtual : '';
+}
+
+function preencherTiposCriacaoSessao() {
+  if (!sessaoTipoEl) return;
+  sessaoTipoEl.innerHTML = '';
+
+  const placeholder = document.createElement('option');
+  placeholder.value = '';
+  placeholder.textContent = state.tiposSessao.length
+    ? 'Selecione um tipo cadastrado'
+    : 'Nenhum tipo ativo cadastrado';
+  placeholder.disabled = true;
+  placeholder.selected = true;
+  sessaoTipoEl.appendChild(placeholder);
+
+  state.tiposSessao.forEach((nome) => {
+    const option = document.createElement('option');
+    option.value = nome;
+    option.textContent = nome;
+    sessaoTipoEl.appendChild(option);
+  });
+
+  sessaoTipoEl.disabled = state.tiposSessao.length === 0;
 }
 
 function aplicarDefaultUltimos7Dias() {
@@ -168,15 +192,15 @@ function aplicarDefaultUltimos7Dias() {
 }
 
 function filtrarSessoesEncerradas(lista) {
-  const tipo = valorCampo(filtroEncerradasTipoEl).toLowerCase();
+  const tipo = valorCampo(filtroEncerradasTipoEl);
   const dataInicio = String(filtroEncerradasDataInicioEl?.value || '').trim();
   const dataFim = String(filtroEncerradasDataFimEl?.value || '').trim();
 
   return (Array.isArray(lista) ? lista : [])
     .filter((item) => Boolean(item?.fim_efetivo_em))
     .filter((item) => {
-      const tipoAtual = String(item?.tipo_sessao || item?.nome || '').toLowerCase();
-      return !tipo || tipoAtual.includes(tipo);
+      const tipoAtual = String(item?.tipo_sessao || item?.nome || '');
+      return !tipo || tipoAtual === tipo;
     })
     .filter((item) => {
       const dataAtual = String(item?.data || '').slice(0, 10);
@@ -242,6 +266,13 @@ async function aplicarFiltrosEncerradasComEstadoAtual() {
 
 function abrirModalCriacao() {
   if (!state.podeCriarSessao || !criarSessaoModalEl) return;
+  if (state.tiposSessao.length === 0) {
+    if (sessaoStatusEl) {
+      sessaoStatusEl.textContent = 'Cadastre ou ative um tipo de sessao em Configuracoes antes de criar sessoes.';
+    }
+    return;
+  }
+  if (sessaoTipoEl) sessaoTipoEl.value = '';
   criarSessaoModalEl.classList.remove('hidden');
   document.body.classList.add('modal-open');
   sessaoTipoEl?.focus();
@@ -250,35 +281,6 @@ function abrirModalCriacao() {
 function fecharModalCriacao() {
   criarSessaoModalEl?.classList.add('hidden');
   document.body.classList.remove('modal-open');
-}
-
-function renderSugestoesTipoSessao(termo = '') {
-  if (!sessaoTipoSugestoesEl) return;
-
-  const busca = String(termo || '').trim().toLowerCase();
-  const tiposFiltrados = state.tiposSessao.filter((nome) => nome.toLowerCase().includes(busca)).slice(0, 10);
-
-  if (tiposFiltrados.length === 0) {
-    sessaoTipoSugestoesEl.innerHTML = '';
-    sessaoTipoSugestoesEl.classList.add('hidden');
-    return;
-  }
-
-  sessaoTipoSugestoesEl.innerHTML = '';
-  tiposFiltrados.forEach((nome) => {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'suggestion-item';
-    btn.textContent = nome;
-    btn.addEventListener('mousedown', (event) => {
-      event.preventDefault();
-      sessaoTipoEl.value = nome;
-      sessaoTipoSugestoesEl.classList.add('hidden');
-    });
-    sessaoTipoSugestoesEl.appendChild(btn);
-  });
-
-  sessaoTipoSugestoesEl.classList.remove('hidden');
 }
 
 async function carregarTiposSessao() {
@@ -291,20 +293,9 @@ async function carregarTiposSessao() {
   } catch (_err) {
     state.tiposSessao = [];
   }
+  preencherTiposCriacaoSessao();
+  preencherTiposFiltrosEncerradas();
 }
-
-
-sessaoTipoEl?.addEventListener('focus', () => {
-  renderSugestoesTipoSessao(sessaoTipoEl.value);
-});
-
-sessaoTipoEl?.addEventListener('input', () => {
-  renderSugestoesTipoSessao(sessaoTipoEl.value);
-});
-
-sessaoTipoEl?.addEventListener('blur', () => {
-  setTimeout(() => sessaoTipoSugestoesEl?.classList.add('hidden'), 120);
-});
 
 abrirCriarSessaoBtn?.addEventListener('click', abrirModalCriacao);
 cancelarCriarSessaoBtn?.addEventListener('click', fecharModalCriacao);
@@ -339,7 +330,7 @@ mostrarEncerradasHojeChk?.addEventListener('change', async () => {
   }
 });
 
-filtroEncerradasTipoEl?.addEventListener('input', async () => {
+filtroEncerradasTipoEl?.addEventListener('change', async () => {
   await aplicarFiltrosEncerradasComEstadoAtual();
 });
 
@@ -364,11 +355,16 @@ sessaoForm?.addEventListener('submit', async (event) => {
   if (sessaoStatusEl) sessaoStatusEl.textContent = 'Criando sessão...';
 
   try {
+    const tipoSelecionado = valorCampo(sessaoTipoEl);
+    if (!tipoSelecionado || !state.tiposSessao.includes(tipoSelecionado)) {
+      throw new Error('Selecione um tipo de sessao ativo cadastrado em Configuracoes.');
+    }
+
     const respostaCriacao = await window.Auth.apiJson('/sessoes', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        tipoSessao: valorCampo(sessaoTipoEl),
+        tipoSessao: tipoSelecionado,
         descricao: valorCampo(sessaoDescricaoEl) || null,
         local: valorCampo(sessaoLocalEl) || null,
         checkoutHabilitado: Boolean(sessaoCheckoutHabilitadoEl?.checked),
@@ -424,7 +420,6 @@ sessaoForm?.addEventListener('submit', async (event) => {
 
   try {
     await carregarTiposSessao();
-    preencherTiposFiltrosEncerradas();
     atualizarVisibilidadeFiltrosEncerradas();
     await carregarSessoesAtivas();
   } catch (err) {

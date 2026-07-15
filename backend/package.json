@@ -8,7 +8,7 @@
     "dev": "nodemon server.js",
     "migrate": "node scripts/runMigrations.js",
     "faces:reprocess": "node scripts/reprocessFaceEmbeddings.js",
-    "test": "node tests/faceRecognitionService.test.js && node tests/usuariosSubjectRemoval.test.js"
+    "test": "node tests/faceRecognitionService.test.js && node tests/usuariosSubjectRemoval.test.js && node tests/sessaoService.test.js"
   },
   "dependencies": {
     "axios": "^1.7.2",

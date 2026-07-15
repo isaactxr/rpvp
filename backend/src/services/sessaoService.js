@@ -95,6 +95,24 @@ async function validarInstrutor(instrutorId) {
   return result.rows[0];
 }
 
+async function validarTipoSessaoAtivo(tipoSessao) {
+  const tipoNormalizado = normalizarTexto(tipoSessao, 'o tipo de sessao');
+  const result = await db.query(
+    `SELECT nome
+     FROM tipos_sessao
+     WHERE LOWER(nome) = LOWER($1)
+       AND ativo = true
+     LIMIT 1`,
+    [tipoNormalizado]
+  );
+
+  if (result.rows.length === 0) {
+    throw criarErroValidacao('Selecione um tipo de sessao ativo cadastrado em Configuracoes.');
+  }
+
+  return result.rows[0].nome;
+}
+
 function normalizarUsuarioIdOpcional(usuarioId, campo) {
   if (usuarioId === undefined || usuarioId === null || usuarioId === '') {
     return null;
@@ -115,7 +133,7 @@ function normalizarUsuarioIdOpcional(usuarioId, campo) {
  */
 async function criarSessao(payload) {
   const nome = gerarNomeSessaoAutomatico();
-  const tipoSessao = normalizarTexto(payload.tipoSessao, 'o tipo de sessão');
+  const tipoSessao = await validarTipoSessaoAtivo(payload.tipoSessao);
   const descricao = normalizarTextoOpcional(payload.descricao, 500);
   const local = normalizarTextoOpcional(payload.local, 180);
   const data = obterDataHojeLocal();
