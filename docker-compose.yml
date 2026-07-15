@@ -22,6 +22,7 @@ services:
 
   cloudflared:
     image: cloudflare/cloudflared:latest
+    container_name: rpvp-cloudflared
     restart: unless-stopped
     command: tunnel --no-autoupdate --edge-ip-version 4 run --protocol http2
     environment:
@@ -31,7 +32,7 @@ services:
     build:
       context: ./face-recognition
       dockerfile: Dockerfile
-    container_name: face-recognition
+    container_name: rpvp-facerecognition
     restart: unless-stopped
     environment:
       PYTHONUNBUFFERED: "1"
