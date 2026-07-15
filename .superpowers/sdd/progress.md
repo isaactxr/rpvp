@@ -1,0 +1,7 @@
+Task 1: complete (commits 312c790..028cb66, review clean)
+Task 2: complete (commits 028cb66..6160cde, review clean; Docker build not available locally)
+Task 4: complete (commits 768486c..16cc4c3, review clean)
+Task 5: complete (commits 16cc4c3..626bb47, review clean)
+Task 6: complete (commits 626bb47..33e1859, review clean)
+Task 7: complete (commits 33e1859..327765c, review clean; runtime execution not available locally)
+Task 8: complete (commits 327765c..aff52eb, review clean)
