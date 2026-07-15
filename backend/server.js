@@ -227,6 +227,14 @@ async function iniciar() {
     );
 
     await db.query(
+      `SELECT setval(
+         pg_get_serial_sequence('usuarios_faces', 'id'),
+         COALESCE((SELECT MAX(id) FROM usuarios_faces), 1),
+         (SELECT COUNT(*) > 0 FROM usuarios_faces)
+       )`
+    );
+
+    await db.query(
       `CREATE TABLE IF NOT EXISTS sessoes_autenticacao (
          id BIGSERIAL PRIMARY KEY,
          token_hash CHAR(64) NOT NULL UNIQUE,
