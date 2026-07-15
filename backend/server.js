@@ -319,6 +319,14 @@ async function iniciar() {
       );
     }
 
+    await db.query(
+      `UPDATE configuracoes
+       SET valor = '0.60',
+           atualizado_em = NOW()
+       WHERE chave = 'limiar_similaridade'
+         AND (valor::numeric < 0.30 OR valor::numeric > 0.80)`
+    );
+
     const syncAdmin = await authService.sincronizarAdminInicial();
     if (syncAdmin.status === 'updated' || syncAdmin.status === 'created') {
       console.log(`[server] Admin inicial ${syncAdmin.status === 'updated' ? 'sincronizado' : 'criado'} para ${syncAdmin.usuario}.`);
@@ -330,7 +338,7 @@ async function iniciar() {
     app.listen(config.PORT, config.HOST, () => {
       console.log(`[server] ✓ Rodando em http://${config.HOST}:${config.PORT}`);
       console.log(`[server] ✓ Face Recognition: ${config.FACE_RECOGNITION_URL}`);
-      console.log(`[server] ✓ Threshold facial: ${config.FACE_RECOGNITION_THRESHOLD}`);
+      console.log(`[server] ✓ Threshold facial fallback: ${config.FACE_RECOGNITION_THRESHOLD}`);
       console.log(`[server] ✓ Banco de dados: ${config.DB_DATABASE}@${config.DB_HOST}:${config.DB_PORT}`);
     });
   } catch (err) {

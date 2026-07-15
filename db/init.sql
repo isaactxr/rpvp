@@ -372,7 +372,7 @@ frames_aberto_min	2	integer	Frames consecutivos com EAR aberto para validar o es
 atraso_pos_piscada_ms	700	integer	Atraso em milissegundos entre detectar a piscada e capturar a foto	2026-04-22 21:08:01.47216+00
 checkout_obrigatorio	false	boolean	Exige checkout facial para considerar a presença como concluída	2026-04-22 21:08:01.47216+00
 min_checkout_intervalo_seg	180	integer	Intervalo mínimo em segundos entre check-in e checkout	2026-04-22 21:08:01.47216+00
-limiar_similaridade	0.92	decimal	Limiar de similaridade para aceitar o reconhecimento facial (0.0 – 1.0)	2026-04-22 21:08:01.47216+00
+limiar_similaridade	0.60	decimal	Distancia maxima para aceitar o reconhecimento facial com face_recognition (0.30 - 0.80)	2026-04-22 21:08:01.47216+00
 ear_fechado	0.20	decimal	EAR abaixo do qual o olho é considerado fechado na detecção de piscada	2026-04-22 21:08:01.47216+00
 ear_aberto	0.25	decimal	EAR acima do qual o olho é considerado aberto na detecção de piscada	2026-04-22 21:08:01.47216+00
 area_minima_rosto	0.06	decimal	Fração mínima do frame que o rosto deve ocupar (rejeita rostos distantes)	2026-04-22 21:08:01.47216+00

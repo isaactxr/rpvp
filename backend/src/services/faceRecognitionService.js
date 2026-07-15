@@ -3,6 +3,7 @@
 const axios = require('axios');
 const FormData = require('form-data');
 const config = require('../config/env');
+const configService = require('./configService');
 
 function criarErro(message, statusCode = 502) {
   const err = new Error(message);
@@ -78,13 +79,14 @@ async function encodeImage({ buffer, mimetype, originalname }) {
 
 async function recognizeImage({ buffer, mimetype, originalname, candidates }) {
   const candidatosNormalizados = normalizarCandidatos(candidates);
+  const tolerance = await obterToleranceReconhecimento();
   const data = await postImagem('/recognize', {
     buffer,
     mimetype,
     filename: originalname || 'face.jpg',
     fields: {
       candidates: candidatosNormalizados,
-      tolerance: String(config.FACE_RECOGNITION_THRESHOLD),
+      tolerance: String(tolerance),
     },
   });
 
@@ -97,7 +99,17 @@ async function recognizeImage({ buffer, mimetype, originalname, candidates }) {
   };
 }
 
+async function obterToleranceReconhecimento() {
+  const limiarBanco = Number(await configService.obter('limiar_similaridade'));
+  if (Number.isFinite(limiarBanco) && limiarBanco >= 0.3 && limiarBanco <= 0.8) {
+    return limiarBanco;
+  }
+
+  return config.FACE_RECOGNITION_THRESHOLD;
+}
+
 module.exports = {
   encodeImage,
   recognizeImage,
+  obterToleranceReconhecimento,
 };

@@ -46,7 +46,7 @@ function lerParametrosPreview() {
   const earFechado = toNumber(getEl('ear_fechado')?.value, 0.20);
   const earAberto = toNumber(getEl('ear_aberto')?.value, 0.25);
   const areaMinima = toNumber(getEl('area_minima_rosto')?.value, 0.08);
-  const limiar = toNumber(getEl('limiar_similaridade')?.value, 0.75);
+  const limiar = toNumber(getEl('limiar_similaridade')?.value, 0.60);
   const framesFechado = toNumber(getEl('frames_fechado_min')?.value, 2);
   const framesAberto = toNumber(getEl('frames_aberto_min')?.value, 2);
 
@@ -99,7 +99,7 @@ function desenharOverlayPreview(cor, params) {
   const boxX = (largura - boxW) / 2;
   const boxY = altura * 0.5 - boxH * 0.55;
 
-  const limiarNorm = clamp((params.limiar - 0.5) / 0.5, 0, 1);
+  const limiarNorm = clamp((params.limiar - 0.3) / 0.5, 0, 1);
   const alpha = 0.52 + limiarNorm * 0.42;
   const mediaFrames = (params.framesFechado + params.framesAberto) / 2;
   const raioPonto = clamp(1.9 + mediaFrames * 0.24, 2, 4.2);
@@ -420,6 +420,11 @@ function validarConfiguracoes(pares) {
   const earAberto = Number(mapa.get('ear_aberto'));
   if (Number.isFinite(earFechado) && Number.isFinite(earAberto) && earFechado >= earAberto) {
     throw new Error('EAR olho fechado deve ser menor que EAR olho aberto.');
+  }
+
+  const limiar = Number(mapa.get('limiar_similaridade'));
+  if (Number.isFinite(limiar) && (limiar < 0.3 || limiar > 0.8)) {
+    throw new Error('Distância máxima de reconhecimento deve estar entre 0.30 e 0.80.');
   }
 }
 

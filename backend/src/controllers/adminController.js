@@ -49,6 +49,11 @@ function validarValorConfiguracao(item, mapaTipos) {
 
   if (tipo === 'decimal') {
     const numero = Number(valor);
+    if (Number.isFinite(numero) && chave === 'limiar_similaridade' && (numero < 0.3 || numero > 0.8)) {
+      const err = new Error('Distancia maxima de reconhecimento deve estar entre 0.30 e 0.80.');
+      err.statusCode = 400;
+      throw err;
+    }
     if (!Number.isFinite(numero)) {
       const err = new Error(`Valor inválido para ${chave}. Informe um número decimal.`);
       err.statusCode = 400;

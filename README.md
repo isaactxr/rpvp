@@ -69,6 +69,7 @@ Variáveis principais (resumo):
 ```env
 # Face Recognition
 FACE_RECOGNITION_URL=http://face-recognition:8000
+# Fallback usado se a configuracao limiar_similaridade do banco estiver ausente/invalida.
 FACE_RECOGNITION_THRESHOLD=0.6
 FACE_RECOGNITION_TIMEOUT_MS=15000
 

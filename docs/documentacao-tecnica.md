@@ -267,7 +267,7 @@ Chaves definidas em `configService.DEFAULTS`:
 - `checkout_obrigatorio`
 - `min_checkout_intervalo_seg`
 - `cooldown_entre_tentativas_ms`
-- `limiar_similaridade`
+- `limiar_similaridade`: distancia maxima aceita pelo `face_recognition` (0.30 a 0.80, padrao 0.60)
 - `ear_fechado`
 - `ear_aberto`
 - `area_minima_rosto`

@@ -32,9 +32,9 @@ const DEFAULTS = [
   },
   {
     chave: 'limiar_similaridade',
-    valor: '0.92',
+    valor: '0.60',
     tipo: 'decimal',
-    descricao: 'Limiar de similaridade para aceitar o reconhecimento facial (0.0 – 1.0)',
+    descricao: 'Distancia maxima para aceitar o reconhecimento facial com face_recognition (0.30 - 0.80)',
   },
   {
     chave: 'ear_fechado',
