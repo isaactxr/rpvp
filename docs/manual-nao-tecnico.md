@@ -1,6 +1,4 @@
-# Manual Não Técnico - Sistema Laboral (RPVP)
-
-Este manual foi preparado para pessoas de fora da área de tecnologia, como diretoria, gestores, instrutores e colaboradores.
+# Manual Não Técnico - Registro de presença
 
 O objetivo é explicar, de forma simples, o que o sistema faz, como ele é usado no dia a dia e quais cuidados são importantes para que tudo funcione bem.
 
@@ -8,7 +6,7 @@ O objetivo é explicar, de forma simples, o que o sistema faz, como ele é usado
 
 ## 1. O que é o sistema
 
-O **Sistema Laboral (RPVP)** é uma ferramenta usada para **registrar presença com reconhecimento facial** e acompanhar sessões realizadas pela empresa.
+O **RPVP** é uma ferramenta usada para **registrar presença com reconhecimento facial** e acompanhar sessões realizadas pela empresa.
 
 Na prática, ele reúne em um só lugar:
 
@@ -299,6 +297,6 @@ Normalmente essa função fica com o perfil administrativo.
 
 ## Encerramento
 
-Em resumo, o **Sistema Laboral (RPVP)** é uma ferramenta de **controle de presença com reconhecimento facial** que também ajuda na organização das sessões, na consulta de históricos e na administração da operação.
+Em resumo, o **RPVP** é uma ferramenta de **controle de presença com reconhecimento facial** que também ajuda na organização das sessões, na consulta de históricos e na administração da operação.
 
 Documento atualizado com base no estado atual do sistema em 16/07/2026.
