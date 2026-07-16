@@ -1,42 +1,58 @@
 # Documentacao Tecnica - Sistema Laboral (RPVP)
 
+Documento tecnico atualizado de acordo com o estado atual do workspace em 16/07/2026.
+
+---
+
 ## 1. Visao geral
 
-Sistema web para controle de presenca com reconhecimento facial, composto por:
+Sistema web self-hosted para controle de presenca com reconhecimento facial, composto por:
 
 - backend em Node.js + Express + PostgreSQL;
-- frontend em HTML/CSS/JavaScript sem framework, servido por um dev-server proprio;
-- reconhecimento facial por servico interno `face-recognition`, acessado apenas pelo backend na rede Docker;
-- validacao local de piscada com MediaPipe Face Mesh nas telas operacionais de captura.
+- frontend multipagina em HTML/CSS/JavaScript sem framework;
+- servidor proprio do frontend para arquivos estaticos, proxy `/api` e injecao de configuracao runtime;
+- banco PostgreSQL na propria stack Docker;
+- servico interno `face-recognition` em Python/FastAPI, acessado pelo backend na rede Docker;
+- validacao local de piscada com MediaPipe Face Mesh nas telas operacionais de captura;
+- `cloudflared` no `docker-compose.yml` para exposicao por tunel quando configurado.
 
-Principais capacidades implementadas atualmente:
+A aplicacao atual nao depende de plataforma externa gerenciada para deploy, banco, autenticacao ou storage. O estado atual e de execucao em infraestrutura propria com Docker Compose.
 
-- autenticacao Bearer com sessoes persistidas no banco de dados;
+Principais capacidades implementadas:
+
+- autenticacao Bearer com sessoes persistidas no PostgreSQL;
 - troca obrigatoria de senha no primeiro acesso;
-- criacao, inicio, encerramento e acompanhamento de sessoes;
+- criacao, inicio, encerramento, checkout e acompanhamento de sessoes;
 - registro facial com logica de check-in/check-out por sessao;
 - auditoria com filtros, imagem por registro e exportacao PDF/Excel;
+- exportacao PDF/Excel do acompanhamento de sessoes;
 - dashboard operacional com indicadores do dia;
-- gestao de usuarios, setores, tipos de sessao e configuracoes administrativas;
-- gestao de colecao facial para cadastro e manutencao de fotos.
+- gestao de usuarios, setores, gestores, tipos de sessao e configuracoes administrativas;
+- importacao/exportacao de usuarios em ZIP, incluindo faces e embeddings;
+- gestao de colecao facial em tabela local `usuarios_faces`.
 
 ## 2. Estrutura do projeto
 
 ### 2.1 Raiz
 
-- `docker-compose.yml`: sobe `postgres`, `backend` e `frontend`.
-- `db/init.sql`: schema inicial do banco usado no container Postgres.
+- `docker-compose.yml`: sobe `postgres`, `cloudflared`, `face-recognition`, `backend` e `frontend`.
+- `db/init.sql`: dump/schema inicial do PostgreSQL usado pelo container de banco.
+- `README.md`: resumo operacional do projeto.
 - `docs/`: documentacao funcional e tecnica.
 
 ### 2.2 Backend
 
-- `backend/server.js`: bootstrap da API, seguranca HTTP, CORS, rate limit, rotas, validacao do banco e reconciliacao estrutural.
-- `backend/src/config/env.js`: leitura e validacao das variaveis de ambiente.
+- `backend/server.js`: bootstrap da API, seguranca HTTP, CORS, rate limits, rotas, validacao do banco e reconciliacao estrutural.
+- `backend/src/config/env.js`: leitura, parse e validacao das variaveis de ambiente.
 - `backend/src/config/database.js`: pool e acesso ao PostgreSQL.
 - `backend/src/routes/reconhecer.js`: registro central de endpoints HTTP.
-- `backend/src/controllers/`: handlers HTTP por dominio (`reconhecerController.js`, `adminController.js`).
-- `backend/src/services/`: regras de negocio, exportacoes, autenticacao, auditoria, sessoes, usuarios e integracao com o servico facial interno.
-- `backend/src/middleware/`: autenticacao/autorizacao e upload multipart.
+- `backend/src/controllers/reconhecerController.js`: handlers de auth, reconhecimento, sessoes, usuarios, auditoria e import/export.
+- `backend/src/controllers/adminController.js`: handlers de configuracoes e tipos de sessao.
+- `backend/src/services/`: regras de negocio, SQL, exportacoes, autenticacao, auditoria, sessoes, usuarios e integracao com o servico facial interno.
+- `backend/src/middleware/auth.js`: autenticacao Bearer e autorizacao por perfil.
+- `backend/src/middleware/upload.js`: uploads de imagem e ZIP de importacao.
+- `backend/scripts/reprocessFaceEmbeddings.js`: rotina para preencher embeddings faltantes em faces ja importadas/cadastradas.
+- `backend/tests/`: testes unitarios/servico existentes.
 
 ### 2.3 Frontend
 
@@ -46,8 +62,9 @@ Principais capacidades implementadas atualmente:
 - `frontend/scripts/`: logica por modulo e autenticacao compartilhada.
 - `frontend/components/`: layouts reutilizaveis.
 - `frontend/styles/`: estilos base e especificos.
+- `frontend/assets/`: imagens de marca e apoio visual.
 
-Paginas atualmente presentes no frontend:
+Paginas presentes:
 
 - `login.html`
 - `alterar-senha.html`
@@ -60,6 +77,12 @@ Paginas atualmente presentes no frontend:
 - `configuracoes.html`
 - `tipos-sessao.html`
 
+### 2.4 Servico facial
+
+- `face-recognition/app.py`: API FastAPI com `/health`, `/encode` e `/recognize`.
+- `face-recognition/requirements.txt`: dependencias Python (`fastapi`, `uvicorn`, `face_recognition`, `numpy`, `Pillow`, `python-multipart`).
+- `face-recognition/Dockerfile`: imagem do motor facial interno.
+
 ## 3. Arquitetura e comportamento atual
 
 ### 3.1 Backend
@@ -67,53 +90,61 @@ Paginas atualmente presentes no frontend:
 Fluxo efetivo de inicializacao em `backend/server.js`:
 
 1. carrega e valida variaveis de ambiente;
-2. configura `trust proxy`;
-3. aplica `helmet()` globalmente;
-4. aplica rate limiting em `POST /auth/login` e `POST /reconhecer`;
-5. configura CORS por allowlist definida em `CORS_ORIGINS`;
-6. registra `express.json()` e log simples de requisicoes;
-7. monta o roteador principal em `/`;
-8. expoe `GET /health`;
-9. valida a conexao com PostgreSQL;
-10. garante tabelas, colunas e indices complementares em runtime;
-11. semeia configuracoes padrao e sincroniza o admin inicial configurado via ambiente.
+2. define timezone da aplicacao;
+3. configura `trust proxy`;
+4. aplica `helmet()` globalmente;
+5. aplica rate limiting em `POST /auth/login` e `POST /reconhecer`;
+6. configura CORS por allowlist definida em `CORS_ORIGINS`;
+7. registra `express.json()` e log simples de requisicoes;
+8. monta o roteador principal em `/`;
+9. expoe `GET /health`;
+10. valida a conexao com PostgreSQL;
+11. garante tabelas, colunas, indices e sequencias complementares em runtime;
+12. semeia configuracoes padrao;
+13. sincroniza o admin inicial configurado via ambiente;
+14. inicia a API em `HOST:PORT`.
 
 Reconciliacoes estruturais feitas no bootstrap:
 
-- criacao da tabela `setores` quando ausente;
+- criacao/ajuste de `setores`;
 - adicao de `setor_id`, `cpf` e `reset_senha_primeiro_acesso` em `usuarios`;
+- remocao de colunas legadas `subject_compreface` e `subject`;
 - criacao de indice unico parcial para CPF;
-- criacao da tabela `sessoes_autenticacao` e indices de apoio;
+- criacao/ajuste de `usuarios_faces`;
+- criacao de indices para faces e embeddings;
+- criacao de `sessoes_autenticacao`;
+- limpeza de sessoes autenticadas expiradas ha mais de 7 dias;
 - adicao de `inicio_efetivo_em`, `fim_efetivo_em`, `tipo_sessao` e `checkout_habilitado` em `sessoes`;
-- criacao da tabela `tipos_sessao` e migracao dos tipos ja existentes em sessoes;
-- criacao da tabela `configuracoes`.
+- criacao de `tipos_sessao` e migracao de tipos ja existentes em sessoes;
+- criacao/seed de `configuracoes`.
 
 ### 3.2 Frontend
 
-O frontend nao consome o backend diretamente por host fixo. O fluxo atual e:
+O frontend nao consome o backend por host fixo. O fluxo atual e:
 
 1. `frontend/dev-server.js` serve os arquivos estaticos;
-2. o mesmo servidor encaminha `/api/*` para o backend configurado em `BACKEND_TARGET`;
+2. o mesmo servidor encaminha `/api/*` para `BACKEND_TARGET`;
 3. a base de API injetada no navegador e, por padrao, `/api`;
-4. `frontend/scripts/auth.js` persiste a sessao em `localStorage` e centraliza redirecionamentos;
-5. cada pagina chama `requireAuth()` para validar autenticacao, perfil e obrigacao de troca de senha.
+4. `frontend/scripts/auth.js` persiste a sessao em `localStorage`;
+5. cada pagina protegida chama `requireAuth()` para validar autenticacao, perfil e obrigacao de troca de senha.
 
 ### 3.3 Telas e modulos relevantes
 
 - `dashboard.js`: consolida indicadores e consultas operacionais do dia.
 - `sessoes.js`: lista sessoes, filtra sessoes ativas e cria novas sessoes.
-- `sessao.js`: pagina operacional por sessao, com captura facial, acompanhamento, controle de inicio/encerramento, exportacao e alternancia de camera em dispositivos moveis.
-- `app.js`: pagina operacional geral de reconhecimento facial com selecao de sessao.
-- `registros.js`: filtros de auditoria, exportacao e visualizacao de imagens auditadas.
-- `usuarios.js`: CRUD de usuarios, setor/gestor, reset de senha e manutencao da colecao facial.
-- `configuracoes.js`: edicao de configuracoes administrativas e manutencao de tipos de sessao.
+- `sessao.js`: pagina operacional por sessao, com captura facial, acompanhamento, inicio/encerramento, checkout, exportacao e alternancia de camera em dispositivos moveis.
+- `app.js`: fluxo operacional geral de reconhecimento facial com selecao de sessao.
+- `registros.js`: filtros de auditoria, paginacao, exportacao e visualizacao de imagens auditadas.
+- `usuarios.js`: CRUD de usuarios, setor/gestor, reset de senha, import/export ZIP e manutencao da colecao facial.
+- `configuracoes.js`: edicao de configuracoes administrativas.
 - `tipos-sessao.js`: gestao dedicada de tipos de sessao.
 
 ## 4. Banco de dados
 
-Estruturas persistidas encontradas em `db/init.sql` e/ou garantidas no bootstrap do backend:
+Estruturas persistidas encontradas em `db/init.sql` e/ou garantidas no bootstrap:
 
 - `usuarios`
+- `usuarios_faces`
 - `setores`
 - `sessoes`
 - `tipos_sessao`
@@ -124,10 +155,11 @@ Estruturas persistidas encontradas em `db/init.sql` e/ou garantidas no bootstrap
 
 Pontos importantes do modelo atual:
 
-- `usuarios` contem `cpf`, `usuario`, `senha_hash`, `perfil_acesso`, `ativo`, `gestor_id`, `setor_id`, `ultimo_login_em`, `reset_senha_primeiro_acesso` e o identificador de reconhecimento facial.
+- `usuarios` contem `cpf`, `usuario`, `senha_hash`, `perfil_acesso`, `ativo`, `gestor_id`, `setor_id`, `ultimo_login_em` e `reset_senha_primeiro_acesso`.
+- `usuarios_faces` armazena a imagem facial (`BYTEA`), `embedding` de 128 dimensoes e `content_type`.
 - `sessoes` contem `tipo_sessao`, `checkout_habilitado`, `inicio_efetivo_em` e `fim_efetivo_em`.
 - `presencas` grava `check_in_em` e `check_out_em` no mesmo registro.
-- `presencas_imagens` guarda a foto em `BYTEA` com `tipo_registro` (`checkin` ou `checkout`).
+- `presencas_imagens` guarda a foto auditada em `BYTEA` com `tipo_registro` (`checkin` ou `checkout`).
 - `configuracoes` guarda chaves tipadas editaveis em runtime.
 - `sessoes_autenticacao` persiste o hash SHA-256 do token, expiracao e revogacao de sessoes.
 
@@ -139,8 +171,9 @@ Pontos importantes do modelo atual:
 - token Bearer retornado ao frontend e persistido em `localStorage`;
 - backend armazena apenas o hash do token em `sessoes_autenticacao`;
 - logout revoga a sessao via `revogado_em`;
-- `GET /auth/me` revalida o usuario no banco a cada uso relevante;
-- quando `reset_senha_primeiro_acesso=true`, o usuario fica restrito ao fluxo de troca de senha.
+- `GET /auth/me` revalida o usuario no banco;
+- quando `reset_senha_primeiro_acesso=true`, o usuario fica restrito ao fluxo de troca de senha;
+- senhas usam PBKDF2 via `cryptoService.js`.
 
 ### 5.2 Seguranca HTTP
 
@@ -148,17 +181,28 @@ Pontos importantes do modelo atual:
 - rate limit dedicado para autenticacao;
 - rate limit dedicado para reconhecimento facial;
 - CORS por allowlist, com bloqueio explicito de `*` em producao;
-- validacao obrigatoria de variaveis sensiveis no startup.
+- validacao obrigatoria de variaveis sensiveis no startup;
+- backend nao expoe diretamente a porta no host pelo Compose atual.
 
-### 5.3 O que nao faz mais parte da aplicacao atual
+### 5.3 Arquivos sensiveis
 
+- exportacao de usuarios gera ZIP com `usuarios.json`, hashes de senha e imagens faciais;
+- importacao de usuarios substitui a colecao facial dos usuarios importados;
+- esses arquivos devem ser tratados como sensiveis e armazenados/transmitidos apenas por canais controlados.
+
+### 5.4 O que nao faz parte do estado atual
+
+- nao ha plataforma externa gerenciada como dependencia de deploy;
+- nao ha BaaS externo como banco, Auth, Storage ou API;
 - nao ha middleware de HTTP Basic Auth no backend;
 - nao ha gate de Basic Auth no frontend;
-- a autenticacao nao e mais volatil em memoria.
+- a autenticacao nao e volatil em memoria.
 
 ## 6. Endpoints atuais
 
-Base: o backend registra rotas diretamente em `/`, e o frontend as consome via proxy `/api`.
+Base real do backend: rotas registradas diretamente em `/`.
+
+Base usada pelo navegador: o frontend consome via proxy `/api`, removido pelo `frontend/dev-server.js` antes de encaminhar ao backend.
 
 ### 6.1 Publicos
 
@@ -197,6 +241,8 @@ Base: o backend registra rotas diretamente em `/`, e o frontend as consome via p
 
 - `GET /setores`
 - `GET /usuarios`
+- `GET /usuarios/export`
+- `POST /usuarios/import`
 - `POST /usuarios`
 - `PUT /usuarios/:id`
 - `PATCH /usuarios/:id/perfil`
@@ -224,50 +270,67 @@ Fluxo atual:
 
 1. o frontend captura imagem apos detectar piscada;
 2. envia `multipart/form-data` para `POST /reconhecer` com `file`, `sessaoId` e `tipoRegistro`;
-3. o backend envia a imagem ao servico interno `face-recognition`;
-4. tenta gerar imagem auditada com watermark do tipo/nome da sessao;
-5. `presencaService.registrarBatidaFacial()` decide o resultado final.
+3. o backend carrega candidatos de `usuarios_faces`;
+4. o backend envia a imagem e candidatos ao servico interno `face-recognition`;
+5. tenta gerar imagem auditada com watermark do tipo/nome da sessao;
+6. `presencaService.registrarBatidaFacial()` decide o resultado final.
 
-Regras vigentes em `presencaService`:
+Regras vigentes:
 
 - exige `sessaoId` valido;
 - bloqueia registros em sessao encerrada;
 - inicia `inicio_efetivo_em` automaticamente no primeiro registro, se necessario;
 - `tipoRegistro=auto` alterna para `checkout` quando a sessao permite checkout e ja existe check-in aberto;
-- checkout respeita `min_checkout_intervalo_seg` em configuracoes;
+- checkout respeita `min_checkout_intervalo_seg`;
 - sessao sem checkout habilitado bloqueia duplicidade na propria sessao;
 - sessao sem checkout habilitado tambem bloqueia duplicidade no mesmo dia para outra sessao do mesmo `tipo_sessao`;
 - imagens de auditoria sao gravadas por `tipo_registro`.
 
-### 7.2 Sessoes
+### 7.2 Motor facial interno
+
+O servico `face-recognition`:
+
+- roda em FastAPI;
+- expoe `GET /health`;
+- expoe `POST /encode` para gerar embedding de uma imagem;
+- expoe `POST /recognize` para comparar uma imagem contra candidatos enviados pelo backend;
+- valida exatamente uma face por imagem;
+- usa embeddings de 128 dimensoes;
+- usa tolerancia configurada por `limiar_similaridade` ou fallback `FACE_RECOGNITION_THRESHOLD`.
+
+### 7.3 Sessoes
 
 Regras ativas em `sessaoService`:
 
 - criacao gera nome automatico no formato `DDMMAAAAHHMM`;
 - a data da sessao e sempre o dia local em `America/Sao_Paulo`;
+- tipo de sessao precisa existir e estar ativo;
 - apenas `admin` e o instrutor responsavel podem iniciar, encerrar ou alterar checkout da sessao;
 - nao e possivel encerrar antes de iniciar;
 - `GET /sessoes?ativo=true` retorna sessoes sem `fim_efetivo_em`;
 - acompanhamento usa os registros reais de presenca, sem dependencia de convocacoes.
 
-### 7.3 Usuarios e setores
+### 7.4 Usuarios, setores e import/export
 
-Regras ativas em `usuarioService`:
+Regras ativas:
 
 - valida perfil, login/usuario, CPF e senha minima;
-- cria setores sob demanda a partir do nome informado no cadastro/edicao;
+- cria setores sob demanda a partir do nome informado;
 - valida que `gestor_id` aponte para usuario com perfil `gestor`;
 - permite resetar obrigacao de troca de senha no primeiro acesso;
-- usa `nome_completo` como identificador facial padrao, salvo override explicito.
+- cadastro de usuario pode receber ate 10 fotos;
+- exportacao de usuarios gera ZIP com manifest `usuarios.json`, fotos e embeddings;
+- importacao aceita ZIP exportado pelo proprio sistema, cria/atualiza usuarios e substitui faces dos usuarios importados;
+- rotina `faces:reprocess` pode preencher embeddings ausentes.
 
-### 7.4 Configuracoes administrativas
+### 7.5 Configuracoes administrativas
 
 Chaves definidas em `configService.DEFAULTS`:
 
 - `checkout_obrigatorio`
 - `min_checkout_intervalo_seg`
 - `cooldown_entre_tentativas_ms`
-- `limiar_similaridade`: distancia maxima aceita pelo `face_recognition` (0.30 a 0.80, padrao 0.60)
+- `limiar_similaridade`
 - `ear_fechado`
 - `ear_aberto`
 - `area_minima_rosto`
@@ -287,26 +350,61 @@ Chaves publicas expostas em `GET /config/publica`:
 - `cooldown_entre_tentativas_ms`
 - `atraso_pos_piscada_ms`
 
-## 8. Execucao e deploy
+## 8. Execucao self-hosted
 
 ### 8.1 Docker Compose
 
 Servicos atuais:
 
-- `postgres` com imagem `postgres:16`;
-- `backend` em Node 20 (`node:20-bookworm-slim`), porta interna 3000;
-- `frontend` em Node 20 (`node:20-alpine`), porta 8080.
+- `postgres`: banco PostgreSQL criado a partir de `db/Dockerfile` e `db/init.sql`;
+- `cloudflared`: tunel Cloudflare, dependente de `TUNNEL_TOKEN`;
+- `face-recognition`: motor facial interno em FastAPI, porta interna 8000 exposta apenas na rede Docker;
+- `backend`: API Node.js, porta interna 3000;
+- `frontend`: servidor estatico/proxy, porta 8080 publicada no host.
 
-Mapeamentos publicados:
+Mapeamentos publicados no host:
 
 - `frontend`: `8080:8080`
-- `postgres`: `55433:5432`
+- `postgres`: `55432:5432`
 
-Observacao: no compose atual o backend nao publica `ports`; ele e acessado pelo frontend via rede interna Docker (`http://backend:3000`).
+Observacoes:
 
-### 8.2 Integracao Docker com face-recognition
+- no Compose atual o backend nao publica `ports`; ele e acessado pelo frontend via rede interna Docker (`http://backend:3000`);
+- o `cloudflared` nao substitui a aplicacao, apenas fornece o tunel quando configurado;
+- o projeto nao contem artefatos de deploy para plataforma externa gerenciada;
+- o banco usado pela aplicacao e o PostgreSQL da propria stack.
 
-O `docker-compose.yml` sobe o servico interno `face-recognition` na mesma rede do backend. O backend o acessa por `FACE_RECOGNITION_URL`, cujo valor padrao no Compose e `http://face-recognition:8000`; nao ha dependencia de uma rede Docker externa.
+### 8.2 Variaveis de ambiente principais
+
+Variaveis obrigatorias ou relevantes:
+
+- `TUNNEL_TOKEN`
+- `FACE_RECOGNITION_URL`
+- `FACE_RECOGNITION_THRESHOLD`
+- `FACE_RECOGNITION_TIMEOUT_MS`
+- `NODE_ENV`
+- `PORT`
+- `HOST`
+- `APP_TIMEZONE`
+- `TRUST_PROXY`
+- `CORS_ORIGINS`
+- `AUTH_TOKEN_TTL_HOURS`
+- `AUTH_PASSWORD_SALT`
+- `INITIAL_ADMIN_NAME`
+- `INITIAL_ADMIN_USER`
+- `INITIAL_ADMIN_PASSWORD`
+- `ALLOW_BOOTSTRAP_ADMIN`
+- `PRESENCE_COOLDOWN_MS`
+- `RATE_LIMIT_AUTH_WINDOW_MS`
+- `RATE_LIMIT_AUTH_MAX`
+- `RATE_LIMIT_RECOGNIZE_WINDOW_MS`
+- `RATE_LIMIT_RECOGNIZE_MAX`
+- `DB_HOST`
+- `DB_PORT`
+- `DB_DATABASE`
+- `DB_USERNAME`
+- `DB_PASSWORD`
+- `DB_SCHEMA`
 
 ### 8.3 Execucao local sem Docker
 
@@ -326,13 +424,21 @@ npm install
 node dev-server.js
 ```
 
-Observacao importante: a execucao local atual do frontend depende do `dev-server.js` para servir arquivos e fazer proxy de `/api`. Servir a pasta `frontend/` como estatico puro nao reproduz o comportamento padrao da aplicacao.
+Servico facial:
+
+```bash
+cd face-recognition
+pip install -r requirements.txt
+uvicorn app:app --host 0.0.0.0 --port 8000
+```
+
+Observacao: a execucao local do frontend depende do `dev-server.js` para servir arquivos e fazer proxy de `/api`. Servir a pasta `frontend/` como estatico puro nao reproduz o comportamento padrao da aplicacao.
 
 ## 9. Dependencias relevantes
 
 ### 9.1 Backend
 
-Dependencias de runtime atualmente declaradas:
+Dependencias de runtime:
 
 - `express`
 - `cors`
@@ -346,6 +452,7 @@ Dependencias de runtime atualmente declaradas:
 - `sharp`
 - `pdfkit`
 - `exceljs`
+- `jszip`
 
 Dependencia de desenvolvimento:
 
@@ -353,17 +460,49 @@ Dependencia de desenvolvimento:
 
 ### 9.2 Frontend
 
-- o frontend em navegador nao usa framework;
-- o servidor frontend declara `dotenv` em `package.json`;
-- MediaPipe Face Mesh e carregado via CDN nas telas de captura.
+- navegador sem framework;
+- servidor frontend declara `dotenv`;
+- MediaPipe Face Mesh e carregado via CDN nas telas de captura;
+- APIs nativas do navegador: `fetch`, `FormData`, `localStorage`, `getUserMedia`.
 
-## 10. Observacoes tecnicas
+### 9.3 Face-recognition
 
-- A fonte de verdade de autenticacao e a tabela `sessoes_autenticacao`; comentarios antigos em codigo ainda mencionam sessao em memoria, mas nao refletem mais o comportamento real.
-- O projeto continua sem pasta de migrations versionadas no workspace; a evolucao estrutural ocorre por `db/init.sql` e reconciliacao no bootstrap do backend.
-- `backend/package.json` declara o script `npm run migrate`, mas nao existe `backend/scripts/runMigrations.js` no workspace atual.
-- Existe uma funcao legada `registrarPresenca` em `presencaService` com referencia a `data` antes da declaracao; a regra efetivamente usada hoje pelo endpoint `/reconhecer` e `registrarBatidaFacial`.
+- `fastapi`
+- `uvicorn[standard]`
+- `python-multipart`
+- `numpy`
+- `face_recognition`
+- `Pillow`
 
----
+## 10. Testes e comandos uteis
 
-Documento atualizado com base no codigo presente no workspace em 27/04/2026.
+Backend:
+
+```bash
+cd backend
+npm test
+```
+
+Reprocessar embeddings:
+
+```bash
+cd backend
+npm run faces:reprocess
+```
+
+Build self-hosted:
+
+```bash
+docker compose build
+docker compose up -d
+```
+
+## 11. Observacoes tecnicas
+
+- A fonte de verdade de autenticacao e `sessoes_autenticacao`.
+- O projeto nao usa ORM; o acesso ao banco e feito por SQL direto nos services.
+- A evolucao estrutural ocorre por `db/init.sql` e reconciliacao no bootstrap do backend.
+- `backend/package.json` ainda declara `npm run migrate`, mas `backend/scripts/runMigrations.js` nao existe no workspace atual.
+- A funcao legada `registrarPresenca` em `presencaService` existe, mas o endpoint `/reconhecer` usa `registrarBatidaFacial`.
+- Existem testes em `backend/tests`, portanto a documentacao nao deve afirmar ausencia total de testes automatizados.
+- Comentarios antigos em alguns arquivos podem falar em tunel/desenvolvimento, mas o estado operacional documentado aqui e self-hosted via Docker Compose.
