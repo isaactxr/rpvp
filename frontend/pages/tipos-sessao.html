@@ -1,0 +1,94 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <title>Tipos de Sessão - Laboral</title>
+  <link rel="stylesheet" href="../styles/base.css?v=20260422a" />
+  <link rel="stylesheet" href="../styles/registros.css?v=20260408a" />
+</head>
+<body data-layout="internal" data-nav-key="tipos-sessao" data-page-title="Tipos de sessão" data-page-subtitle="Gerencie os tipos disponíveis para criação de novas sessões.">
+  <main data-layout-content>
+      <!-- Formulário de criação -->
+      <section class="card stack-section">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow">Novo</span>
+            <h2>Adicionar tipo</h2>
+          </div>
+          <span id="tipoStatus" class="muted-text"></span>
+        </div>
+
+        <form id="tipoForm" class="session-form">
+          <label class="field-span-2">
+            <span>Nome do tipo</span>
+            <input id="tipoNome" type="text" maxlength="80" placeholder="Ex.: Laboral, Treinamento, Integração" required />
+          </label>
+          <div class="field-span-2 form-actions">
+            <button type="submit" class="primary-btn">Adicionar</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Lista de tipos -->
+      <section class="card">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow">Cadastro</span>
+            <h2>Tipos cadastrados</h2>
+          </div>
+          <button id="refreshBtn" type="button" class="ghost-btn">Atualizar</button>
+        </div>
+
+        <div class="table-wrap top-space">
+          <table>
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Status</th>
+                <th>Criado em</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tiposBody">
+              <tr><td colspan="4" class="empty">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+  </main>
+
+  <!-- Modal de edição inline -->
+  <div id="editModal" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+    <div class="modal-box card">
+      <h3>Editar tipo de sessão</h3>
+      <form id="editForm" class="session-form">
+        <input type="hidden" id="editId" />
+        <label class="field-span-2">
+          <span>Nome</span>
+          <input id="editNome" type="text" maxlength="80" required />
+        </label>
+        <label class="field-span-2 config-toggle-row">
+          <strong>Ativo</strong>
+          <div class="toggle-wrap">
+            <input type="checkbox" id="editAtivo" class="toggle-input" />
+            <label for="editAtivo" class="toggle-label"></label>
+          </div>
+        </label>
+        <div class="field-span-2 form-actions">
+          <button type="submit" class="primary-btn">Salvar</button>
+          <button type="button" id="cancelEditBtn" class="ghost-btn">Cancelar</button>
+          <span id="editStatus" class="muted-text"></span>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../scripts/auth.js?v=20260426b"></script>
+  <script src="../components/internal-layout.js?v=20260426b"></script>
+  <script src="../scripts/tipos-sessao.js?v=20260401a"></script>
+</body>
+</html>
+
+
+

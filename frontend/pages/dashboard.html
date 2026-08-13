@@ -1,0 +1,119 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <title>Dashboard - Laboral</title>
+  <link rel="stylesheet" href="../styles/base.css?v=20260422a" />
+  <link rel="stylesheet" href="../styles/registros.css?v=20260408a" />
+</head>
+<body data-layout="internal" data-nav-key="dashboard" data-page-title="Dashboard operacional" data-page-subtitle="Painel com visão rápida de sessões e presença.">
+  <main data-layout-content>
+      <section class="kpi-grid">
+        <article class="card kpi-card">
+          <span class="eyebrow">Hoje</span>
+          <div class="kpi-line">
+            <h2 id="kpiSessoes">0</h2>
+            <p>Sessões cadastradas</p>
+          </div>
+        </article>
+        <article class="card kpi-card">
+          <span class="eyebrow">Hoje</span>
+          <div class="kpi-line">
+            <h2 id="kpiConcluidos">0</h2>
+            <p>Participações concluídas</p>
+          </div>
+        </article>
+        <article class="card kpi-card">
+          <span class="eyebrow">Hoje</span>
+          <div class="kpi-line">
+            <h2 id="kpiAusentes">0</h2>
+            <p>Ausências</p>
+          </div>
+        </article>
+      </section>
+
+      <section class="card filter-card">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow">Filtros</span>
+          </div>
+          <button id="dashboardToggleFiltrosBtn" type="button" class="ghost-btn" aria-expanded="false" aria-controls="dashboardFiltersForm">Mostrar filtros</button>
+        </div>
+
+        <form id="dashboardFiltersForm" class="filters-grid hidden">
+          <label>
+            <span>Colaborador</span>
+            <input id="dashboardFiltroColaborador" list="dashboardColaboradorDatalist" type="text" placeholder="Digite para sugerir" />
+            <datalist id="dashboardColaboradorDatalist"></datalist>
+          </label>
+          <label>
+            <span>Data início</span>
+            <input id="dashboardFiltroDataInicio" type="date" />
+          </label>
+          <label>
+            <span>Data fim</span>
+            <input id="dashboardFiltroDataFim" type="date" />
+          </label>
+          <label>
+            <span>Tipo de sessão</span>
+            <input id="dashboardFiltroTipoSessao" list="dashboardTipoSessaoDatalist" type="text" placeholder="Digite para sugerir" />
+            <datalist id="dashboardTipoSessaoDatalist"></datalist>
+          </label>
+          <label>
+            <span>Instrutor</span>
+            <input id="dashboardFiltroInstrutor" list="dashboardInstrutorDatalist" type="text" placeholder="Digite para sugerir" />
+            <datalist id="dashboardInstrutorDatalist"></datalist>
+          </label>
+          <label>
+            <span>Status</span>
+            <select id="dashboardFiltroStatus">
+              <option value="">Todos</option>
+              <option value="nao_iniciado">Não iniciado</option>
+              <option value="em_andamento">Em andamento</option>
+              <option value="concluido">Concluído</option>
+              <option value="ausente">Ausente</option>
+            </select>
+          </label>
+          <div class="filter-actions field-span-2">
+            <button type="submit" class="primary-btn">Aplicar filtros</button>
+            <button id="dashboardLimparFiltrosBtn" type="button" class="ghost-btn">Limpar</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="card">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow">Resumo</span>
+            <h2>Últimas linhas de auditoria</h2>
+          </div>
+          <span id="dashboardStatus" class="muted-text">Carregando dados...</span>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Colaborador</th>
+                <th>Sessão</th>
+                <th>Instrutor</th>
+                <th>Status</th>
+                <th>Check-in</th>
+                <th>Check-out</th>
+              </tr>
+            </thead>
+            <tbody id="dashboardBody"></tbody>
+          </table>
+        </div>
+      </section>
+  </main>
+
+  <script src="../scripts/auth.js?v=20260426b"></script>
+  <script src="../components/internal-layout.js?v=20260426b"></script>
+  <script src="../scripts/dashboard.js?v=20260402a"></script>
+</body>
+</html>
+
+
+

@@ -1,0 +1,120 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <title>Auditoria de sessões - Laboral</title>
+  <link rel="stylesheet" href="../styles/base.css?v=20260422a" />
+  <link rel="stylesheet" href="../styles/registros.css?v=20260408a" />
+</head>
+<body data-layout="internal" data-nav-key="registros" data-page-title="Auditoria de sessões" data-page-subtitle="Consulta imutável com rastreabilidade de presença e permanência.">
+  <main data-layout-content>
+      <section class="card filter-card">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow">Filtros</span>
+            <h2>Busca e rastreabilidade</h2>
+          </div>
+          <div class="section-head-actions">
+            <span id="statusText">Carregando auditoria...</span>
+            <button id="registrosToggleFiltrosBtn" type="button" class="ghost-btn" aria-expanded="false" aria-controls="filtersForm">Mostrar filtros</button>
+          </div>
+        </div>
+
+        <form id="filtersForm" class="filters-grid hidden">
+          <label>
+            <span>Nome completo</span>
+            <input id="filtroNome" list="nomesDatalist" type="text" placeholder="Digite para sugerir" />
+            <datalist id="nomesDatalist"></datalist>
+          </label>
+          <label>
+            <span>Setor</span>
+            <input id="filtroSetorBusca" list="setorDatalist" type="text" placeholder="Digite para sugerir" />
+            <datalist id="setorDatalist"></datalist>
+          </label>
+          <label>
+            <span>Data início</span>
+            <input id="filtroDataInicio" type="date" />
+          </label>
+          <label>
+            <span>Data fim</span>
+            <input id="filtroDataFim" type="date" />
+          </label>
+          <label>
+            <span>Instrutor</span>
+            <input id="filtroInstrutorBusca" list="instrutorDatalist" type="text" placeholder="Digite para sugerir" />
+            <datalist id="instrutorDatalist"></datalist>
+          </label>
+          <label>
+            <span>Sessão</span>
+            <input id="filtroSessaoBusca" list="sessaoDatalist" type="text" placeholder="Digite para sugerir" />
+            <datalist id="sessaoDatalist"></datalist>
+          </label>
+          <label>
+            <span>Tipo de sessão</span>
+            <input id="filtroTipoSessaoBusca" list="tipoSessaoDatalist" type="text" placeholder="Digite para sugerir" />
+            <datalist id="tipoSessaoDatalist"></datalist>
+          </label>
+          <label>
+            <span>Status</span>
+            <select id="filtroStatus">
+              <option value="">Todos</option>
+              <option value="nao_iniciado">Não iniciado</option>
+              <option value="em_andamento">Em andamento</option>
+              <option value="concluido">Concluído</option>
+              <option value="ausente">Ausente</option>
+            </select>
+          </label>
+          <div class="filter-actions field-span-2">
+            <button type="submit" class="primary-btn">Aplicar filtros</button>
+            <button id="clearFiltersBtn" type="button" class="ghost-btn">Limpar</button>
+            <button id="refreshBtn" type="button" class="ghost-btn">Atualizar</button>
+            <button id="exportPdfBtn" type="button" class="ghost-btn">Exportar PDF</button>
+            <button id="exportExcelBtn" type="button" class="ghost-btn">Exportar Excel</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="card">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow">Somente leitura</span>
+            <h2>Resultado da auditoria</h2>
+          </div>
+          <span id="paginationInfo" class="muted-text">Página 1</span>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Colaborador</th>
+                <th>Sessão</th>
+                <th>Instrutor</th>
+                <th>Data/hora sessão</th>
+                <th>Status</th>
+                <th>Check-in</th>
+                <th>Check-out</th>
+                <th>Duração</th>
+                <th>Foto</th>
+              </tr>
+            </thead>
+            <tbody id="registrosBody"></tbody>
+          </table>
+        </div>
+
+        <div class="form-actions top-space">
+          <button id="prevPageBtn" type="button" class="ghost-btn">Página anterior</button>
+          <button id="nextPageBtn" type="button" class="ghost-btn">Próxima página</button>
+        </div>
+      </section>
+  </main>
+
+  <script src="../scripts/auth.js?v=20260426b"></script>
+  <script src="../components/internal-layout.js?v=20260426b"></script>
+  <script src="../scripts/registros.js?v=20260402a"></script>
+</body>
+</html>
+
+
+

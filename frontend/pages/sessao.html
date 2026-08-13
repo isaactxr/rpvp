@@ -1,0 +1,96 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <title>Sessão - Laboral</title>
+  <link rel="stylesheet" href="../styles/base.css?v=20260422a" />
+  <link rel="stylesheet" href="../styles/registros.css?v=20260408a" />
+  <link rel="stylesheet" href="../styles/style.css?v=20260402f" />
+</head>
+<body data-layout="internal" data-nav-key="sessoes" data-page-title="Sessão" data-page-subtitle="Carregando sessão..." data-page-title-id="sessaoTitulo" data-page-subtitle-id="sessaoSubtitulo" data-page-class="sessao-page">
+  <main data-layout-content>
+      <section class="card" id="sessaoControleCard">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow">Operação</span>
+            <h2>Controle da sessão</h2>
+          </div>
+          <div class="form-actions">
+            <a href="sessoes.html" class="ghost-btn">Voltar para sessões</a>
+            <button id="iniciarSessaoBtn" type="button" class="success-soft-btn hidden">Iniciar sessão</button>
+            <button id="encerrarSessaoBtn" type="button" class="danger-soft-btn hidden">Encerrar sessão</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" id="sessaoFaceCard">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow">Verificação facial</span>
+            <h2>Registro de presença</h2>
+            <p id="sessionHint" class="session-hint top-space">Aguardando dados da sessão.</p>
+          </div>
+          <div class="form-actions">
+            <button id="trocarCameraBtn" type="button" class="ghost-btn hidden">Usar câmera traseira</button>
+            <span id="acompanhamentoStatus" class="muted-text">Carregando acompanhamento...</span>
+          </div>
+        </div>
+
+        <div class="face-main">
+          <div class="video-wrapper" id="videoWrapper">
+            <video id="video" autoplay muted playsinline></video>
+            <canvas id="canvasOverlay"></canvas>
+            <div class="face-guide"></div>
+            <div class="status-bar" id="statusBar">
+              <span id="statusText">Carregando câmera...</span>
+            </div>
+          </div>
+
+          <div class="debug-panel">
+            EAR: <span id="earValue">-</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" id="sessaoListaCard">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow">Confirmados</span>
+            <h2>Lista de presença na sessão</h2>
+          </div>
+          <div class="form-actions">
+            <button id="exportSessaoPdfBtn" type="button" class="ghost-btn">Exportar PDF</button>
+            <button id="exportSessaoExcelBtn" type="button" class="ghost-btn">Exportar Excel</button>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Colaborador</th>
+                <th>Status</th>
+                <th>Entrada</th>
+                <th>Saída</th>
+                <th>Fotos</th>
+              </tr>
+            </thead>
+            <tbody id="acompanhamentoBody"></tbody>
+          </table>
+        </div>
+      </section>
+  </main>
+
+  <script src="../scripts/auth.js?v=20260426b"></script>
+  <script src="../components/internal-layout.js?v=20260426b"></script>
+  <script
+    src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/face_mesh.js"
+    crossorigin="anonymous">
+  </script>
+  <script src="../scripts/sessao.js?v=20260409b"></script>
+</body>
+</html>
+
+
+
