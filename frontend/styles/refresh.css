@@ -24,12 +24,13 @@ body[data-layout='internal'] .layout {
   padding: 0;
 }
 
-body[data-layout='internal'] .sidebar {
+body[data-layout='internal'] .sidebar.card {
   position: sticky;
   top: 0;
   height: 100vh;
   display: flex;
   flex-direction: column;
+  flex-wrap: nowrap;
   align-items: stretch;
   justify-content: flex-start;
   gap: 0.25rem;
@@ -258,6 +259,21 @@ body[data-layout='internal'] .dropzone-card {
 }
 
 body[data-layout='internal'] .modal-card { background: #fff; }
+body[data-layout='internal'] .modal-head {
+  position: static;
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+}
+
+/* O input nativo dos switches é invisível; o foco deve aparecer no controle visual. */
+body[data-layout='internal'] .toggle-input:focus-visible + .toggle-label {
+  outline: 3px solid #d68436;
+  outline-offset: 3px;
+}
+
+body[data-layout='internal'] .eyebrow,
+body[data-layout='internal'] .session-kicker { color: #60717e; }
+body[data-layout='internal'] .session-hint { color: var(--muted); }
 body[data-layout='internal'] .checkbox-list,
 body[data-layout='internal'] .inline-check,
 body[data-layout='internal'] .config-toggle-row { color: var(--text); }
@@ -288,6 +304,8 @@ body[data-layout='internal'] .face-guide {
   box-shadow: none;
 }
 body[data-layout='internal'] .status-bar {
+  top: 0;
+  bottom: auto;
   background: rgba(12, 28, 37, 0.9);
   border: 0;
   backdrop-filter: none;
@@ -295,9 +313,13 @@ body[data-layout='internal'] .status-bar {
 }
 body[data-layout='internal'] .debug-panel { color: var(--muted); }
 
+body[data-layout='internal'] #sessaoFaceCard .video-wrapper {
+  max-height: 62svh;
+}
+
 @media (max-width: 980px) {
   body[data-layout='internal'] .layout { display: block; }
-  body[data-layout='internal'] .sidebar {
+  body[data-layout='internal'] .sidebar.card {
     height: auto;
     padding: 0.55rem 0.75rem;
     flex-direction: row;
@@ -313,6 +335,7 @@ body[data-layout='internal'] .debug-panel { color: var(--muted); }
 }
 
 @media (max-width: 640px) {
+  body[data-layout='internal'] .modal-head { position: static; }
   body[data-layout='internal'] .topbar,
   body[data-layout='internal'] .section-head { flex-direction: column; align-items: stretch; }
   body[data-layout='internal'] .user-badge { justify-content: flex-start; }

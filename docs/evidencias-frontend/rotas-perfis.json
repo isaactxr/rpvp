@@ -1,0 +1,303 @@
+[
+  {
+    "role": "gestor",
+    "page": "dashboard",
+    "expected": "allowed",
+    "url": "http://localhost:8080/pages/dashboard.html",
+    "menus": [
+      "Dashboard",
+      "Sessões",
+      "Auditoria de sessões"
+    ]
+  },
+  {
+    "role": "gestor",
+    "page": "sessoes",
+    "expected": "allowed",
+    "url": "http://localhost:8080/pages/sessoes.html",
+    "menus": [
+      "Dashboard",
+      "Sessões",
+      "Auditoria de sessões"
+    ]
+  },
+  {
+    "role": "gestor",
+    "page": "sessao",
+    "expected": "allowed",
+    "url": "http://localhost:8080/pages/sessao.html?id=1",
+    "menus": [
+      "Dashboard",
+      "Sessões",
+      "Auditoria de sessões"
+    ]
+  },
+  {
+    "role": "gestor",
+    "page": "registros",
+    "expected": "allowed",
+    "url": "http://localhost:8080/pages/registros.html",
+    "menus": [
+      "Dashboard",
+      "Sessões",
+      "Auditoria de sessões"
+    ]
+  },
+  {
+    "role": "gestor",
+    "page": "usuarios",
+    "expected": "denied",
+    "url": "http://localhost:8080/pages/acesso-negado.html?next=%2Fpages%2Fusuarios.html",
+    "menus": [
+      "Dashboard",
+      "Sessões",
+      "Auditoria de sessões"
+    ]
+  },
+  {
+    "role": "gestor",
+    "page": "tipos-sessao",
+    "expected": "denied",
+    "url": "http://localhost:8080/pages/acesso-negado.html?next=%2Fpages%2Ftipos-sessao.html",
+    "menus": [
+      "Dashboard",
+      "Sessões",
+      "Auditoria de sessões"
+    ]
+  },
+  {
+    "role": "gestor",
+    "page": "configuracoes",
+    "expected": "denied",
+    "url": "http://localhost:8080/pages/acesso-negado.html?next=%2Fpages%2Fconfiguracoes.html",
+    "menus": [
+      "Dashboard",
+      "Sessões",
+      "Auditoria de sessões"
+    ]
+  },
+  {
+    "role": "instrutor",
+    "page": "dashboard",
+    "expected": "allowed",
+    "url": "http://localhost:8080/pages/dashboard.html",
+    "menus": [
+      "Dashboard",
+      "Sessões"
+    ]
+  },
+  {
+    "role": "instrutor",
+    "page": "sessoes",
+    "expected": "allowed",
+    "url": "http://localhost:8080/pages/sessoes.html",
+    "menus": [
+      "Dashboard",
+      "Sessões"
+    ]
+  },
+  {
+    "role": "instrutor",
+    "page": "sessao",
+    "expected": "allowed",
+    "url": "http://localhost:8080/pages/sessao.html?id=1",
+    "menus": [
+      "Dashboard",
+      "Sessões"
+    ]
+  },
+  {
+    "role": "instrutor",
+    "page": "registros",
+    "expected": "denied",
+    "url": "http://localhost:8080/pages/acesso-negado.html?next=%2Fpages%2Fregistros.html",
+    "menus": [
+      "Dashboard",
+      "Sessões"
+    ]
+  },
+  {
+    "role": "instrutor",
+    "page": "usuarios",
+    "expected": "denied",
+    "url": "http://localhost:8080/pages/acesso-negado.html?next=%2Fpages%2Fusuarios.html",
+    "menus": [
+      "Dashboard",
+      "Sessões"
+    ]
+  },
+  {
+    "role": "instrutor",
+    "page": "tipos-sessao",
+    "expected": "denied",
+    "url": "http://localhost:8080/pages/acesso-negado.html?next=%2Fpages%2Ftipos-sessao.html",
+    "menus": [
+      "Dashboard",
+      "Sessões"
+    ]
+  },
+  {
+    "role": "instrutor",
+    "page": "configuracoes",
+    "expected": "denied",
+    "url": "http://localhost:8080/pages/acesso-negado.html?next=%2Fpages%2Fconfiguracoes.html",
+    "menus": [
+      "Dashboard",
+      "Sessões"
+    ]
+  },
+  {
+    "role": "colaborador",
+    "page": "dashboard",
+    "expected": "denied",
+    "url": "http://localhost:8080/pages/acesso-negado.html?next=%2Fpages%2Fdashboard.html",
+    "menus": [
+      "Sessões"
+    ]
+  },
+  {
+    "role": "colaborador",
+    "page": "sessoes",
+    "expected": "allowed",
+    "url": "http://localhost:8080/pages/sessoes.html",
+    "menus": [
+      "Sessões"
+    ]
+  },
+  {
+    "role": "colaborador",
+    "page": "sessao",
+    "expected": "allowed",
+    "url": "http://localhost:8080/pages/sessao.html?id=1",
+    "menus": [
+      "Sessões"
+    ]
+  },
+  {
+    "role": "colaborador",
+    "page": "registros",
+    "expected": "denied",
+    "url": "http://localhost:8080/pages/acesso-negado.html?next=%2Fpages%2Fregistros.html",
+    "menus": [
+      "Sessões"
+    ]
+  },
+  {
+    "role": "colaborador",
+    "page": "usuarios",
+    "expected": "denied",
+    "url": "http://localhost:8080/pages/acesso-negado.html?next=%2Fpages%2Fusuarios.html",
+    "menus": [
+      "Sessões"
+    ]
+  },
+  {
+    "role": "colaborador",
+    "page": "tipos-sessao",
+    "expected": "denied",
+    "url": "http://localhost:8080/pages/acesso-negado.html?next=%2Fpages%2Ftipos-sessao.html",
+    "menus": [
+      "Sessões"
+    ]
+  },
+  {
+    "role": "colaborador",
+    "page": "configuracoes",
+    "expected": "denied",
+    "url": "http://localhost:8080/pages/acesso-negado.html?next=%2Fpages%2Fconfiguracoes.html",
+    "menus": [
+      "Sessões"
+    ]
+  },
+  {
+    "role": "admin",
+    "page": "dashboard",
+    "expected": "allowed",
+    "url": "http://localhost:8080/pages/dashboard.html",
+    "menus": [
+      "Dashboard",
+      "Sessões",
+      "Auditoria de sessões",
+      "Usuários",
+      "Configurações"
+    ]
+  },
+  {
+    "role": "admin",
+    "page": "sessoes",
+    "expected": "allowed",
+    "url": "http://localhost:8080/pages/sessoes.html",
+    "menus": [
+      "Dashboard",
+      "Sessões",
+      "Auditoria de sessões",
+      "Usuários",
+      "Configurações"
+    ]
+  },
+  {
+    "role": "admin",
+    "page": "sessao",
+    "expected": "allowed",
+    "url": "http://localhost:8080/pages/sessao.html?id=1",
+    "menus": [
+      "Dashboard",
+      "Sessões",
+      "Auditoria de sessões",
+      "Usuários",
+      "Configurações"
+    ]
+  },
+  {
+    "role": "admin",
+    "page": "registros",
+    "expected": "allowed",
+    "url": "http://localhost:8080/pages/registros.html",
+    "menus": [
+      "Dashboard",
+      "Sessões",
+      "Auditoria de sessões",
+      "Usuários",
+      "Configurações"
+    ]
+  },
+  {
+    "role": "admin",
+    "page": "usuarios",
+    "expected": "allowed",
+    "url": "http://localhost:8080/pages/usuarios.html",
+    "menus": [
+      "Dashboard",
+      "Sessões",
+      "Auditoria de sessões",
+      "Usuários",
+      "Configurações"
+    ]
+  },
+  {
+    "role": "admin",
+    "page": "tipos-sessao",
+    "expected": "allowed",
+    "url": "http://localhost:8080/pages/tipos-sessao.html",
+    "menus": [
+      "Dashboard",
+      "Sessões",
+      "Auditoria de sessões",
+      "Usuários",
+      "Configurações"
+    ]
+  },
+  {
+    "role": "admin",
+    "page": "configuracoes",
+    "expected": "allowed",
+    "url": "http://localhost:8080/pages/configuracoes.html",
+    "menus": [
+      "Dashboard",
+      "Sessões",
+      "Auditoria de sessões",
+      "Usuários",
+      "Configurações"
+    ]
+  }
+]

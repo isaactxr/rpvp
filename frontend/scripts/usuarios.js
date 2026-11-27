@@ -312,10 +312,14 @@ function renderPainelUsuarioSelecionado() {
     : 'Selecione um usuário na coleção facial para gerenciar.';
 }
 
+const cadastroFocus = window.ModalFocus.create(cadastroModalEl, fecharModalCadastro);
+const resetSenhaFocus = window.ModalFocus.create(resetSenhaModalEl, fecharModalResetSenha);
+
 function abrirModalCadastro() {
   cadastroModalEl?.classList.remove('hidden');
   cadastroModalEl?.setAttribute('aria-hidden', 'false');
   document.body.classList.add('modal-open');
+  cadastroFocus.open();
   usuarioForm?.reset();
   if (novoGestorIdEl) novoGestorIdEl.value = '';
   if (novoGestorNomeEl) novoGestorNomeEl.value = '';
@@ -329,6 +333,7 @@ function abrirModalCadastro() {
 }
 
 function fecharModalCadastro() {
+  cadastroFocus.close();
   cadastroModalEl?.classList.add('hidden');
   cadastroModalEl?.setAttribute('aria-hidden', 'true');
   document.body.classList.remove('modal-open');
@@ -339,6 +344,7 @@ function abrirModalResetSenha() {
   resetSenhaModalEl?.classList.remove('hidden');
   resetSenhaModalEl?.setAttribute('aria-hidden', 'false');
   document.body.classList.add('modal-open');
+  resetSenhaFocus.open();
   resetSenhaFormEl?.reset();
   if (resetSenhaUsuarioNomeEl) {
     resetSenhaUsuarioNomeEl.textContent = state.colecaoUsuario.nome_completo || '-';
@@ -353,6 +359,7 @@ function abrirModalResetSenha() {
 }
 
 function fecharModalResetSenha() {
+  resetSenhaFocus.close();
   resetSenhaModalEl?.classList.add('hidden');
   resetSenhaModalEl?.setAttribute('aria-hidden', 'true');
   if (!cadastroModalEl || cadastroModalEl.classList.contains('hidden')) {

@@ -192,8 +192,9 @@ async function alternarCameraMobile() {
     atualizarTextoBotaoTrocaCamera();
     try {
       await iniciarCamera();
-    } catch (__err) {
-      // Mantém status de erro amigável mesmo que não consiga restaurar imediatamente.
+    } catch (err) {
+      apresentarErroCamera(err);
+      return;
     }
     setStatus('Não foi possível alternar a câmera neste dispositivo.', 'atencao');
   } finally {
@@ -263,8 +264,8 @@ async function reconfigurarCameraSeNecessario() {
 
   try {
     await iniciarCamera();
-  } catch (_err) {
-    setStatus('Nao foi possivel ajustar a camera para a nova orientacao.', 'atencao');
+  } catch (err) {
+    apresentarErroCamera(err);
   }
 }
 
@@ -329,6 +330,20 @@ function setStatus(msg, tipo = 'info') {
   DOM.statusBar.style.color = STATUS_COR[tipo] ?? '#ffffff';
   ultimoStatus = msg;
   ultimoTipoStatus = tipo;
+}
+
+function apresentarErroCamera(err) {
+  const nome = String(err?.name || '');
+  let mensagem = 'Não foi possível abrir a câmera. Verifique o dispositivo e tente novamente.';
+  if (nome === 'NotAllowedError' || nome === 'PermissionDeniedError') {
+    mensagem = 'Permita o acesso à câmera no navegador e tente novamente.';
+  } else if (nome === 'NotFoundError' || nome === 'DevicesNotFoundError') {
+    mensagem = 'Câmera não encontrada. Conecte uma câmera e tente novamente.';
+  } else if (nome === 'NotReadableError') {
+    mensagem = 'Câmera indisponível. Feche outros aplicativos que a utilizam e tente novamente.';
+  }
+  setStatus(mensagem, 'erro');
+  DOM.tentarCameraBtn?.classList.remove('hidden');
 }
 
 function formatarDuracaoMinSeg(totalSegundos) {
@@ -963,7 +978,9 @@ async function onRostoDetectado(results) {
   }
 
   if (!results.multiFaceLandmarks?.length) {
-    setStatus('Posicione seu rosto', 'info');
+    // Não apaga captura, envio ou resultado se a pessoa sair do quadro.
+    // Os contadores de piscada continuam sendo reiniciados como antes.
+    if (!state.processando) setStatus('Posicione seu rosto', 'info');
     state.olhoFechado = false;
     state.framesFechado = 0;
     state.framesAberto = 0;
@@ -1109,71 +1126,80 @@ async function baixarExportacaoSessao(tipo) {
 }
 
 async function iniciarCamera() {
-  setStatus('Carregando câmera...', 'info');
+  DOM.videoWrapper?.setAttribute('aria-busy', 'true');
+  if (DOM.trocarCameraBtn) DOM.trocarCameraBtn.disabled = true;
+  if (DOM.tentarCameraBtn) DOM.tentarCameraBtn.disabled = true;
+  try {
+    setStatus('Carregando câmera...', 'info');
 
-  aplicarAspectRatioDaViewport();
-  state.cameraOrientation = obterOrientacaoAtualCamera();
-  pararCameraAtual();
-  atualizarEspelhamentoVideo();
+    aplicarAspectRatioDaViewport();
+    state.cameraOrientation = obterOrientacaoAtualCamera();
+    pararCameraAtual();
+    atualizarEspelhamentoVideo();
 
-  let stream = null;
-  let ultimoErro = null;
-  const candidatos = obterCandidatosRestricoesVideo();
+    let stream = null;
+    let ultimoErro = null;
+    const candidatos = obterCandidatosRestricoesVideo();
 
-  for (const restricoes of candidatos) {
-    try {
-      const tentativa = await navigator.mediaDevices.getUserMedia({
-        video: restricoes,
-        audio: false,
-      });
+    for (const restricoes of candidatos) {
+      try {
+        const tentativa = await navigator.mediaDevices.getUserMedia({
+          video: restricoes,
+          audio: false,
+        });
 
-      if (!streamCombinaOrientacaoDesejada(tentativa)) {
-        try {
-          tentativa.getTracks().forEach((track) => track.stop());
-        } catch (_err) {
-          // Ignora falha ao encerrar tentativa incompatível.
+        if (!streamCombinaOrientacaoDesejada(tentativa)) {
+          try {
+            tentativa.getTracks().forEach((track) => track.stop());
+          } catch (_err) {
+            // Ignora falha ao encerrar tentativa incompatível.
+          }
+          continue;
         }
-        continue;
-      }
 
-      stream = tentativa;
-      break;
-    } catch (err) {
-      ultimoErro = err;
-      const nome = String(err?.name || '');
-      const erroDeRestricao = nome === 'OverconstrainedError'
-        || nome === 'ConstraintNotSatisfiedError'
-        || nome === 'NotFoundError'
-        || nome === 'DevicesNotFoundError';
+        stream = tentativa;
+        break;
+      } catch (err) {
+        ultimoErro = err;
+        const nome = String(err?.name || '');
+        const erroDeRestricao = nome === 'OverconstrainedError'
+          || nome === 'ConstraintNotSatisfiedError'
+          || nome === 'NotFoundError'
+          || nome === 'DevicesNotFoundError';
 
-      if (!erroDeRestricao) {
-        throw err;
+        if (!erroDeRestricao) {
+          throw err;
+        }
       }
     }
+
+    if (!stream) {
+      throw ultimoErro || new Error('Nao foi possivel iniciar a camera com as restricoes disponiveis.');
+    }
+
+    await normalizarZoomTrack(stream);
+
+    DOM.video.srcObject = stream;
+    DOM.video.setAttribute('playsinline', 'true');
+
+    await new Promise((resolve, reject) => {
+      DOM.video.onloadedmetadata = () => {
+        DOM.video.play().then(() => {
+          const vW = DOM.video.videoWidth;
+          const vH = DOM.video.videoHeight;
+          DOM.canvas.width = vW;
+          DOM.canvas.height = vH;
+          aplicarAspectRatioDaViewport();
+          resolve();
+        }).catch(reject);
+      };
+      DOM.video.onerror = reject;
+    });
+  } finally {
+    DOM.videoWrapper?.setAttribute('aria-busy', 'false');
+    if (DOM.trocarCameraBtn) DOM.trocarCameraBtn.disabled = false;
+    if (DOM.tentarCameraBtn) DOM.tentarCameraBtn.disabled = false;
   }
-
-  if (!stream) {
-    throw ultimoErro || new Error('Nao foi possivel iniciar a camera com as restricoes disponiveis.');
-  }
-
-  await normalizarZoomTrack(stream);
-
-  DOM.video.srcObject = stream;
-  DOM.video.setAttribute('playsinline', 'true');
-
-  await new Promise((resolve, reject) => {
-    DOM.video.onloadedmetadata = () => {
-      DOM.video.play().then(() => {
-        const vW = DOM.video.videoWidth;
-        const vH = DOM.video.videoHeight;
-        DOM.canvas.width = vW;
-        DOM.canvas.height = vH;
-        aplicarAspectRatioDaViewport();
-        resolve();
-      }).catch(reject);
-    };
-    DOM.video.onerror = reject;
-  });
 }
 
 async function detectarRosto() {
@@ -1274,7 +1300,7 @@ DOM.tentarCameraBtn?.addEventListener('click', async () => {
     setStatus('Iniciando detecção...', 'info');
     await detectarRosto();
   } catch (err) {
-    setStatus(err?.message || 'Não foi possível iniciar a câmera.', 'erro');
+    apresentarErroCamera(err);
   } finally {
     DOM.tentarCameraBtn.disabled = false;
   }
@@ -1330,16 +1356,10 @@ DOM.tentarCameraBtn?.addEventListener('click', async () => {
     setStatus('Iniciando detecção...', 'info');
     await detectarRosto();
   } catch (err) {
-    if (DOM.sessaoSubtitulo) DOM.sessaoSubtitulo.textContent = err.message;
-    if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-      setStatus('Permissão de câmera negada', 'erro');
-    } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
-      setStatus('Câmera não encontrada', 'erro');
+    if (state.sessao) {
+      apresentarErroCamera(err);
     } else {
-      setStatus('Erro ao iniciar câmera ou carregar sessão.', 'erro');
-    }
-    if (state.sessao && !state.sessao.fim_efetivo_em) {
-      DOM.tentarCameraBtn?.classList.remove('hidden');
+      setStatus('Não foi possível carregar a sessão. Atualize a página para tentar novamente.', 'erro');
     }
   }
 })();

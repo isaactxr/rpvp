@@ -264,6 +264,8 @@ async function aplicarFiltrosEncerradasComEstadoAtual() {
   }
 }
 
+const criacaoFocus = window.ModalFocus.create(criarSessaoModalEl, fecharModalCriacao);
+
 function abrirModalCriacao() {
   if (!state.podeCriarSessao || !criarSessaoModalEl) return;
   if (state.tiposSessao.length === 0) {
@@ -275,15 +277,14 @@ function abrirModalCriacao() {
   if (sessaoTipoEl) sessaoTipoEl.value = '';
   criarSessaoModalEl.classList.remove('hidden');
   document.body.classList.add('modal-open');
-  criarSessaoModalEl.dataset.returnFocus = document.activeElement?.id || '';
+  criacaoFocus.open();
   sessaoTipoEl?.focus();
 }
 
 function fecharModalCriacao() {
   criarSessaoModalEl?.classList.add('hidden');
   document.body.classList.remove('modal-open');
-  const origem = document.getElementById(criarSessaoModalEl?.dataset.returnFocus || '');
-  (origem || abrirCriarSessaoBtn)?.focus();
+  criacaoFocus.close();
 }
 
 document.addEventListener('keydown', (event) => {

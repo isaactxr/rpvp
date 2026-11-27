@@ -2,6 +2,8 @@
 
 Data: 26/11/2026. Branch de trabalho pretendida: `codex/frontend-reformulacao-handoff`.
 
+Continuação: [relatório de homologação e evidências](frontend-homologacao.md). A validação biométrica com câmera real e a medição de desempenho permanecem pendentes; o relatório distingue os testes executados das limitações.
+
 ## Objetivo e limites
 
 Melhorar aparência, responsividade e feedback da interface sem alterar contratos de API, banco, backend, regras de permissão ou o fluxo funcional de check-in/check-out. Não foi iniciado container nem serviço nesta etapa.

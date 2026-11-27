@@ -126,6 +126,8 @@ tipoForm?.addEventListener('submit', async (e) => {
   }
 });
 
+const editFocus = window.ModalFocus.create(editModal, fecharModal);
+
 // ─── Delegação de cliques na tabela ──────────────────────────────────────────
 
 tiposBodyEl?.addEventListener('click', async (e) => {
@@ -145,6 +147,8 @@ tiposBodyEl?.addEventListener('click', async (e) => {
     editAtivoEl.checked = tipo.ativo;
     setStatus(editStatusEl, '');
     editModal?.classList.remove('hidden');
+    editFocus.open();
+    editNomeEl?.focus();
     document.body.classList.add('modal-open');
     return;
   }
@@ -178,6 +182,9 @@ tiposBodyEl?.addEventListener('click', async (e) => {
 // ─── Modal de edição ──────────────────────────────────────────────────────────
 
 function fecharModal() {
+  const replacement = [...(tiposBodyEl?.querySelectorAll('[data-action="editar"]') || [])]
+    .find((button) => button.dataset.id === String(editIdEl?.value));
+  editFocus.close(replacement);
   editModal?.classList.add('hidden');
   document.body.classList.remove('modal-open');
 }
@@ -197,8 +204,8 @@ editForm?.addEventListener('submit', async (e) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ nome, ativo }),
     });
-    fecharModal();
     await carregarTipos();
+    fecharModal();
     setStatus(tipoStatusEl, 'Tipo atualizado com sucesso.', 'ok');
   } catch (err) {
     setStatus(editStatusEl, err.message, 'erro');

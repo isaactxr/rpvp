@@ -2,11 +2,11 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Sessões - Laboral</title>
   <link rel="stylesheet" href="../styles/base.css?v=20260422a" />
   <link rel="stylesheet" href="../styles/registros.css?v=20260408a" />
-  <link rel="stylesheet" href="../styles/refresh.css?v=20261126a" />
+  <link rel="stylesheet" href="../styles/refresh.css?v=20261126c" />
 </head>
 <body data-layout="internal" data-nav-key="sessoes" data-page-title="Gestão de sessões" data-page-subtitle="Selecione uma sessão ativa para abrir a página operacional da sessão.">
   <main data-layout-content>
@@ -56,9 +56,9 @@
       </section>
   </main>
 
-  <div id="criarSessaoModal" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+  <div id="criarSessaoModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="criarSessaoTitulo">
     <div class="modal-box card">
-      <h3>Criar sessão</h3>
+      <h3 id="criarSessaoTitulo">Criar sessão</h3>
       <form id="sessaoForm" class="session-form">
         <label class="field-span-2">
           <span>Instrutor responsável (logado)</span>
@@ -98,7 +98,8 @@
 
   <script src="../scripts/auth.js?v=20261126a"></script>
   <script src="../components/internal-layout.js?v=20260426b"></script>
-  <script src="../scripts/sessoes.js?v=20261126a"></script>
+  <script src="../components/modal-focus.js?v=20261126b"></script>
+  <script src="../scripts/sessoes.js?v=20261126c"></script>
 </body>
 </html>
 
