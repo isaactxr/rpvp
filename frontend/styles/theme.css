@@ -1,0 +1,135 @@
+/* Uma paleta por tema; componentes compartilham os mesmos tokens. */
+:root {
+  color-scheme: dark;
+  --ui-bg: #0d161f;
+  --ui-bg-end: #101e29;
+  --ui-surface: #15232e;
+  --ui-soft: #1b2d3a;
+  --ui-border: #304553;
+  --ui-text: #e6edf3;
+  --ui-muted: #a6b6c2;
+  --ui-heading: #f1f5f9;
+  --ui-label: #c6d3dc;
+  --ui-placeholder: #9baeba;
+  --ui-accent: #e89746;
+  --ui-accent-hover: #f0ae6b;
+  --ui-on-accent: #201609;
+  --ui-focus: #f0ae6b;
+  --ui-control-border: #5e7586;
+  --ui-control-text: #d8e5ed;
+  --ui-control-hover: #223b4b;
+  --ui-control-hover-border: #7893a5;
+  --ui-active-bg: #263f50;
+  --ui-active-border: #688b9e;
+  --ui-active-text: #f1f5f9;
+  --ui-table-border: #304553;
+  --ui-table-head-bg: #1b2d3a;
+  --ui-table-head-text: #c8d6df;
+  --ui-table-text: #d5e0e8;
+  --ui-row-hover: #1a303f;
+  --ui-chip-bg: #203746;
+  --ui-chip-border: #486578;
+  --ui-chip-text: #c8deea;
+  --ui-secondary-bg: #192c38;
+  --ui-secondary-border: #3d586a;
+  --ui-preview-bg: #0d1b25;
+  --ui-selected-bg: #263f50;
+  --ui-selected-border: #7899ad;
+  --ui-success-bg: #173b2b;
+  --ui-success-border: #426f55;
+  --ui-success-text: #a2e6bb;
+  --ui-danger-bg: #39252b;
+  --ui-danger-border: #82505a;
+  --ui-danger-text: #ffb7b7;
+  --ui-warn-bg: #3b3020;
+  --ui-warn-border: #806940;
+  --ui-warn-text: #f5d18b;
+  --bg-start: var(--ui-bg);
+  --bg-end: var(--ui-bg-end);
+  --card: var(--ui-surface);
+  --border: var(--ui-border);
+  --text: var(--ui-text);
+  --muted: var(--ui-muted);
+  --accent: var(--ui-accent);
+  --accent-strong: var(--ui-accent-hover);
+  --surface-soft: var(--ui-soft);
+  --surface-strong: var(--ui-surface);
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+  --ui-bg: #f3f5f7;
+  --ui-bg-end: #e9eef2;
+  --ui-surface: #fff;
+  --ui-soft: #f5f7f8;
+  --ui-border: #dce3e8;
+  --ui-text: #1b2a35;
+  --ui-muted: #60717e;
+  --ui-heading: #142936;
+  --ui-label: #394d59;
+  --ui-placeholder: #60717e;
+  --ui-accent: #a65309;
+  --ui-accent-hover: #874107;
+  --ui-on-accent: #fff;
+  --ui-focus: #a65309;
+  --ui-control-border: #81929d;
+  --ui-control-text: #26404e;
+  --ui-control-hover: #edf3f5;
+  --ui-control-hover-border: #a9bbc5;
+  --ui-active-bg: #e8f0f2;
+  --ui-active-border: #a9c2cf;
+  --ui-active-text: #183440;
+  --ui-table-border: #e8edf0;
+  --ui-table-head-bg: #f4f7f8;
+  --ui-table-head-text: #3b5260;
+  --ui-table-text: #2d414d;
+  --ui-row-hover: #f7fafb;
+  --ui-chip-bg: #edf3f5;
+  --ui-chip-border: #d6e2e7;
+  --ui-chip-text: #294957;
+  --ui-secondary-bg: #f6f9fa;
+  --ui-secondary-border: #d5e0e5;
+  --ui-preview-bg: #e5ecef;
+  --ui-selected-bg: #e9f1f3;
+  --ui-selected-border: #91b2c1;
+  --ui-success-bg: #edf8f1;
+  --ui-success-border: #b7dfc5;
+  --ui-success-text: #146337;
+  --ui-danger-bg: #fff0f0;
+  --ui-danger-border: #f0c4c4;
+  --ui-danger-text: #a52626;
+  --ui-warn-bg: #fff4df;
+  --ui-warn-border: #f2d9aa;
+  --ui-warn-text: #7d5108;
+}
+
+/* Controle nativo de teclado, com estado anunciado pelo aria-pressed. */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  gap: 0.45rem;
+  min-height: 38px;
+  padding: 0.5rem 0.75rem;
+  margin: 0;
+  background: var(--ui-soft);
+  color: var(--ui-text);
+  border: 1px solid var(--ui-control-border);
+  border-radius: 0.55rem;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.theme-toggle:hover { background: var(--ui-control-hover); }
+.theme-toggle:focus-visible { outline: 3px solid var(--ui-focus); outline-offset: 3px; }
+.theme-toggle svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+.theme-icon-light { display: none; }
+:root[data-theme='light'] .theme-icon-light { display: block; }
+:root[data-theme='light'] .theme-icon-dark { display: none; }
+.auth-toolbar { display: flex; justify-content: flex-end; margin-bottom: 1rem; }
+body[data-layout='message'] { background: var(--ui-bg); }
+body[data-layout='message'] .primary-btn { background: var(--ui-accent); color: var(--ui-on-accent); }
+body[data-layout='message'] .ghost-btn { background: var(--ui-soft); color: var(--ui-text); border-color: var(--ui-control-border); }

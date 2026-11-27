@@ -3,8 +3,8 @@ body {
   min-height: 100vh;
   display: grid;
   place-items: center;
-  background: #f3f5f7;
-  color: #1b2a35;
+  background: var(--ui-bg);
+  color: var(--ui-text);
   padding: 1rem;
 }
 
@@ -16,8 +16,8 @@ body {
 .login-card {
   max-width: 420px;
   margin: 0 auto;
-  background: #fff;
-  border: 1px solid #dce3e8;
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-border);
   border-radius: 0.9rem;
   padding: clamp(1.4rem, 4vw, 2.2rem);
   box-shadow: 0 14px 36px rgba(20, 41, 54, 0.07);
@@ -38,7 +38,7 @@ h1 {
 p {
   margin: 0.6rem 0 0;
   text-align: center;
-  color: #60717e;
+  color: var(--ui-muted);
 }
 
 .login-form {
@@ -56,15 +56,15 @@ label {
 
 label span {
   font-size: 0.88rem;
-  color: #394d59;
+  color: var(--ui-label);
 }
 
 input {
   width: 100%;
   border-radius: 0.55rem;
-  border: 1px solid #cbd6dc;
-  background: #fff;
-  color: #1b2a35;
+  border: 1px solid var(--ui-control-border);
+  background: var(--ui-surface);
+  color: var(--ui-text);
   padding: 0.72rem 0.82rem;
 }
 
@@ -72,8 +72,8 @@ button {
   margin-top: 0.2rem;
   border: none;
   border-radius: 0.55rem;
-  background: #a65309;
-  color: #fff;
+  background: var(--ui-accent);
+  color: var(--ui-on-accent);
   font-weight: 700;
   padding: 0.76rem 0.95rem;
   cursor: pointer;
@@ -86,9 +86,9 @@ button {
 }
 
 input:focus-visible, button:focus-visible {
-  outline: 3px solid #d68436;
+  outline: 3px solid var(--ui-focus);
   outline-offset: 2px;
 }
 
-button:hover { background: #874107; }
+button:hover { background: var(--ui-accent-hover); }
 button:disabled { opacity: 0.55; cursor: not-allowed; }

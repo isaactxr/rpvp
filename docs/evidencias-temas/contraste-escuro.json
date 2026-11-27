@@ -1,0 +1,22 @@
+[
+  {
+    "selector": ".card",
+    "ratio": 12.69
+  },
+  {
+    "selector": ".muted-text",
+    "ratio": 7.69
+  },
+  {
+    "selector": ".primary-btn",
+    "ratio": 7.58
+  },
+  {
+    "selector": ".ghost-btn",
+    "ratio": 12.46
+  },
+  {
+    "selector": ".sidebar-link.active",
+    "ratio": 10.04
+  }
+]
