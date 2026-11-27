@@ -1,0 +1,30 @@
+.dashboard-heading { display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; }
+.dashboard-heading h2 { margin: .35rem 0; color: var(--ui-heading); }
+.dashboard-heading p { margin: 0; }
+.dashboard-refresh { display: flex; align-items: flex-end; flex-direction: column; gap: .65rem; text-align: right; }
+.dashboard-refresh span { font-size: .8rem; max-width: 28rem; }
+.dashboard-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; }
+.dashboard-summary article { display: flex; flex-direction: column; gap: .6rem; }
+.dashboard-summary span { color: var(--ui-muted); font-size: .9rem; }
+.dashboard-summary strong { color: var(--ui-heading); font-size: 2rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.dashboard-list { display: grid; gap: .85rem; }
+body[data-layout='internal'] .dashboard-session { display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; border-left: 3px solid var(--ui-border); }
+body[data-layout='internal'] .dashboard-session[data-status='em_andamento'] { border-left-color: var(--ui-warn-text); }
+body[data-layout='internal'] .dashboard-session[data-status='concluida'] { border-left-color: var(--ui-success-text); }
+.dashboard-session-info { min-width: 0; overflow-wrap: anywhere; }
+.dashboard-session h2 { margin: .35rem 0; font-size: 1.15rem; color: var(--ui-heading); }
+.dashboard-session p { margin: .3rem 0 0; font-size: .9rem; }
+.dashboard-session-actions { display: flex; align-items: center; gap: 1rem; flex-shrink: 0; }
+.dashboard-session-actions a { text-decoration: none; text-align: center; }
+.dashboard-empty { text-align: center; padding: 3rem 1rem; color: var(--ui-muted); margin: 0; }
+@media (max-width: 900px) {
+  .dashboard-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dashboard-session-actions { flex-direction: column; align-items: stretch; }
+}
+@media (max-width: 600px) {
+  .dashboard-heading, .dashboard-session { flex-direction: column; align-items: stretch; gap: 1rem; }
+  .dashboard-refresh { align-items: flex-start; text-align: left; }
+  .dashboard-summary { gap: .65rem; }
+  .dashboard-summary .card { padding: 1rem; }
+  .dashboard-session-actions { flex-direction: row; justify-content: space-between; align-items: center; }
+}

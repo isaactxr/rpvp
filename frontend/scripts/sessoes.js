@@ -211,12 +211,23 @@ function filtrarSessoesEncerradas(lista) {
     });
 }
 
+function mensagemSessoesAbertas(total) {
+  if (total === 0) return 'Nenhuma sessão no momento';
+  if (total === 1) return '1 sessão aberta no momento';
+  return `${total} sessões abertas no momento`;
+}
+
 function renderSessoesAtivas() {
   if (!sessoesAtivasListaEl) return;
 
   sessoesAtivasListaEl.innerHTML = '';
   if (state.sessoesAtivas.length === 0) {
-    sessoesAtivasListaEl.innerHTML = '<span class="muted-text">Nenhuma sessão ativa/não encerrada no momento.</span>';
+    const mensagem = document.createElement('span');
+    mensagem.className = 'muted-text';
+    mensagem.textContent = mostrarEncerradasHojeChk?.checked
+      ? 'Nenhuma sessão encerrada para os filtros selecionados'
+      : mensagemSessoesAbertas(0);
+    sessoesAtivasListaEl.appendChild(mensagem);
     return;
   }
 
@@ -251,7 +262,7 @@ async function carregarSessoesAtivas() {
   if (sessaoStatusEl) {
     sessaoStatusEl.textContent = mostrarEncerradas
       ? `${state.sessoesAtivas.length} sessão(ões) encerrada(s) no filtro selecionado.`
-      : `${state.sessoesAtivas.length} sessão(ões) ativa(s)/não encerrada(s).`;
+      : mensagemSessoesAbertas(state.sessoesAtivas.length);
   }
 }
 

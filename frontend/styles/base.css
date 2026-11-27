@@ -3,6 +3,36 @@
   box-sizing: border-box;
 }
 
+/* Permite encolher campos em grids/flex, inclusive a data nativa do iOS. */
+label {
+  min-width: 0;
+  max-width: 100%;
+}
+
+input,
+select,
+textarea {
+  min-width: 0;
+  max-width: 100%;
+}
+
+input:is([type='date'], [type='datetime-local'], [type='time']) {
+  display: block;
+  width: 100%;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+}
+
+input::-webkit-date-and-time-value {
+  min-width: 0;
+  text-align: left;
+}
+
+input::-webkit-datetime-edit {
+  min-width: 0;
+  padding: 0;
+}
+
 :root {
   --bg-start: #0f172a;
   --bg-end: #1a1f3a;
