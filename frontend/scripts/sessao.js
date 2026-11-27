@@ -65,6 +65,7 @@ const DOM = {
   exportSessaoPdfBtn: document.getElementById('exportSessaoPdfBtn'),
   exportSessaoExcelBtn: document.getElementById('exportSessaoExcelBtn'),
   trocarCameraBtn: document.getElementById('trocarCameraBtn'),
+  tentarCameraBtn: document.getElementById('tentarCameraBtn'),
 
   video: document.getElementById('video'),
   canvas: document.getElementById('canvasOverlay'),
@@ -93,6 +94,7 @@ const state = {
   ultimaCaptura: 0,
   framesFechado: 0,
   framesAberto: 0,
+  detectorIniciado: false,
 };
 
 function isPortraitViewport() {
@@ -318,10 +320,15 @@ function montarNomeSessao(sessao) {
   return `${tipo} - ${local}`;
 }
 
+let ultimoStatus = null;
+let ultimoTipoStatus = null;
 function setStatus(msg, tipo = 'info') {
   if (!DOM.statusText || !DOM.statusBar) return;
-  DOM.statusText.textContent = msg;
+  if (msg === ultimoStatus && tipo === ultimoTipoStatus) return;
+  if (DOM.statusText.textContent !== msg) DOM.statusText.textContent = msg;
   DOM.statusBar.style.color = STATUS_COR[tipo] ?? '#ffffff';
+  ultimoStatus = msg;
+  ultimoTipoStatus = tipo;
 }
 
 function formatarDuracaoMinSeg(totalSegundos) {
@@ -619,6 +626,7 @@ async function carregarAcompanhamento() {
     if (lista.length === 0) {
       renderAcompanhamentoVazio('Sem registros para esta sessão.');
     } else {
+      const linhas = document.createDocumentFragment();
       lista.forEach((item) => {
         const possuiFotos = Boolean(item.tem_foto_checkin || item.tem_foto_checkout);
         const tr = document.createElement('tr');
@@ -641,8 +649,9 @@ async function carregarAcompanhamento() {
           });
         }
 
-        DOM.acompanhamentoBody.appendChild(tr);
+        linhas.appendChild(tr);
       });
+      DOM.acompanhamentoBody.appendChild(linhas);
     }
 
     if (DOM.acompanhamentoStatus) {
@@ -862,7 +871,6 @@ function desenharContornoOlhoPontilhado(landmarks, indices, cor) {
 
 function desenharOverlay(landmarks, valido) {
   // Overlay dinâmico desativado a pedido do usuário.
-  ctx.clearRect(0, 0, DOM.canvas.width, DOM.canvas.height);
 }
 
 function rostoTemTamanhoMinimo(landmarks) {
@@ -950,8 +958,6 @@ async function enviarImagem(blob) {
 }
 
 async function onRostoDetectado(results) {
-  ctx.clearRect(0, 0, DOM.canvas.width, DOM.canvas.height);
-
   if (state.deteccaoPausada || state.controleSessaoEmAndamento) {
     return;
   }
@@ -1171,6 +1177,7 @@ async function iniciarCamera() {
 }
 
 async function detectarRosto() {
+  if (state.detectorIniciado) return;
   const faceMesh = new FaceMesh({
     locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@${CONFIG.MP_VERSION}/${file}`,
   });
@@ -1183,9 +1190,13 @@ async function detectarRosto() {
   });
 
   faceMesh.onResults(onRostoDetectado);
+  state.detectorIniciado = true;
 
   let emEnvio = false;
   let ultimoProcessamento = 0;
+  let amostras = 0;
+  let tempoTotal = 0;
+  let inicioJanela = performance.now();
   async function loop() {
     if (!state.deteccaoAtiva) {
       try {
@@ -1209,7 +1220,22 @@ async function detectarRosto() {
       emEnvio = true;
       ultimoProcessamento = agora;
       try {
+        const inicioEnvio = performance.now();
         await faceMesh.send({ image: DOM.video });
+        if (window.__LABORAL_DEBUG_PERF__) {
+          tempoTotal += performance.now() - inicioEnvio;
+          amostras += 1;
+          const duracaoJanela = performance.now() - inicioJanela;
+          if (duracaoJanela >= 5000) {
+            console.debug('[sessao:perf]', {
+              faceMeshMedioMs: Math.round(tempoTotal / amostras),
+              fpsProcessado: Number((amostras * 1000 / duracaoJanela).toFixed(1)),
+            });
+            amostras = 0;
+            tempoTotal = 0;
+            inicioJanela = performance.now();
+          }
+        }
       } catch (_err) {
         // mantém o loop ativo
       } finally {
@@ -1237,6 +1263,21 @@ DOM.exportSessaoExcelBtn?.addEventListener('click', async () => {
 
 DOM.trocarCameraBtn?.addEventListener('click', async () => {
   await alternarCameraMobile();
+});
+
+DOM.tentarCameraBtn?.addEventListener('click', async () => {
+  DOM.tentarCameraBtn.disabled = true;
+  try {
+    await iniciarCamera();
+    DOM.tentarCameraBtn.classList.add('hidden');
+    registrarEventosDeOrientacaoCamera();
+    setStatus('Iniciando detecção...', 'info');
+    await detectarRosto();
+  } catch (err) {
+    setStatus(err?.message || 'Não foi possível iniciar a câmera.', 'erro');
+  } finally {
+    DOM.tentarCameraBtn.disabled = false;
+  }
 });
 
 (async function init() {
@@ -1276,8 +1317,7 @@ DOM.trocarCameraBtn?.addEventListener('click', async () => {
   }
 
   try {
-    await carregarSessao();
-    await carregarAcompanhamento();
+    await Promise.all([carregarSessao(), carregarAcompanhamento()]);
     atualizarVisibilidadePorEstadoSessao();
 
     if (state.sessao?.fim_efetivo_em) {
@@ -1285,6 +1325,7 @@ DOM.trocarCameraBtn?.addEventListener('click', async () => {
     }
 
     await iniciarCamera();
+    DOM.tentarCameraBtn?.classList.add('hidden');
     registrarEventosDeOrientacaoCamera();
     setStatus('Iniciando detecção...', 'info');
     await detectarRosto();
@@ -1296,6 +1337,9 @@ DOM.trocarCameraBtn?.addEventListener('click', async () => {
       setStatus('Câmera não encontrada', 'erro');
     } else {
       setStatus('Erro ao iniciar câmera ou carregar sessão.', 'erro');
+    }
+    if (state.sessao && !state.sessao.fim_efetivo_em) {
+      DOM.tentarCameraBtn?.classList.remove('hidden');
     }
   }
 })();

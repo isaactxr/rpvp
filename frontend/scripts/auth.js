@@ -154,7 +154,7 @@
   }
 
   function filtrarNavPorPerfil(perfil) {
-    document.querySelectorAll('.role-nav-item[data-roles]').forEach((el) => {
+    document.querySelectorAll('.sidebar-link[data-roles], .role-nav-item[data-roles]').forEach((el) => {
       const roles = String(el.dataset.roles || '').split(',').map((r) => r.trim());
       el.classList.toggle('hidden', !roles.includes(perfil));
     });

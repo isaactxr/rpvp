@@ -275,13 +275,22 @@ function abrirModalCriacao() {
   if (sessaoTipoEl) sessaoTipoEl.value = '';
   criarSessaoModalEl.classList.remove('hidden');
   document.body.classList.add('modal-open');
+  criarSessaoModalEl.dataset.returnFocus = document.activeElement?.id || '';
   sessaoTipoEl?.focus();
 }
 
 function fecharModalCriacao() {
   criarSessaoModalEl?.classList.add('hidden');
   document.body.classList.remove('modal-open');
+  const origem = document.getElementById(criarSessaoModalEl?.dataset.returnFocus || '');
+  (origem || abrirCriarSessaoBtn)?.focus();
 }
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && criarSessaoModalEl && !criarSessaoModalEl.classList.contains('hidden')) {
+    fecharModalCriacao();
+  }
+});
 
 async function carregarTiposSessao() {
   try {

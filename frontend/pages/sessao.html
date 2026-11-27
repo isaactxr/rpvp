@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="../styles/base.css?v=20260422a" />
   <link rel="stylesheet" href="../styles/registros.css?v=20260408a" />
   <link rel="stylesheet" href="../styles/style.css?v=20260402f" />
+  <link rel="stylesheet" href="../styles/refresh.css?v=20261126a" />
 </head>
 <body data-layout="internal" data-nav-key="sessoes" data-page-title="Sessão" data-page-subtitle="Carregando sessão..." data-page-title-id="sessaoTitulo" data-page-subtitle-id="sessaoSubtitulo" data-page-class="sessao-page">
   <main data-layout-content>
@@ -33,6 +34,7 @@
           </div>
           <div class="form-actions">
             <button id="trocarCameraBtn" type="button" class="ghost-btn hidden">Usar câmera traseira</button>
+            <button id="tentarCameraBtn" type="button" class="ghost-btn hidden">Tentar câmera novamente</button>
             <span id="acompanhamentoStatus" class="muted-text">Carregando acompanhamento...</span>
           </div>
         </div>
@@ -42,7 +44,7 @@
             <video id="video" autoplay muted playsinline></video>
             <canvas id="canvasOverlay"></canvas>
             <div class="face-guide"></div>
-            <div class="status-bar" id="statusBar">
+            <div class="status-bar" id="statusBar" role="status" aria-live="polite">
               <span id="statusText">Carregando câmera...</span>
             </div>
           </div>
@@ -82,13 +84,13 @@
       </section>
   </main>
 
-  <script src="../scripts/auth.js?v=20260426b"></script>
+  <script src="../scripts/auth.js?v=20261126a"></script>
   <script src="../components/internal-layout.js?v=20260426b"></script>
   <script
     src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/face_mesh.js"
     crossorigin="anonymous">
   </script>
-  <script src="../scripts/sessao.js?v=20260409b"></script>
+  <script src="../scripts/sessao.js?v=20261126a"></script>
 </body>
 </html>
 

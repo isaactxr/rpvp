@@ -25,7 +25,7 @@
   const card = document.createElement('section');
   card.className = 'login-card';
   card.innerHTML = `
-    <img src="../assets/img/logo.png" alt="Logo Viana Peixoto" class="logo" />
+    <img src="../assets/img/logo_dark.png" alt="Logo Viana Peixoto" class="logo" />
     <h1>${escapeHtml(title)}</h1>
   `;
 
