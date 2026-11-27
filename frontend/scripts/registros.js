@@ -223,7 +223,7 @@ function abrirAbaPlaceholderFotos() {
   </style>
 </head>
 <body>
-  <p>Carregando foto(s)...</p>
+  <p>Carregando fotos...</p>
 </body>
 </html>`);
   documento.close();
@@ -459,7 +459,9 @@ async function carregarAuditoria() {
     }
 
     paginationInfoEl.textContent = `Página ${state.page} de ${state.totalPages} • Total ${pagination.total || 0}`;
-    statusEl.textContent = `${lista.length} linha(s) carregada(s). Dados somente leitura.`;
+    statusEl.textContent = lista.length === 0
+      ? 'Nenhum registro encontrado. Apenas consulta.'
+      : `${lista.length} ${lista.length === 1 ? 'registro nesta página' : 'registros nesta página'}. Apenas consulta.`;
 
     prevPageBtn.disabled = state.page <= 1;
     nextPageBtn.disabled = state.page >= state.totalPages;

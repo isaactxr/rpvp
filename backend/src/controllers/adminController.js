@@ -96,8 +96,8 @@ async function atualizarConfiguracoes(req, res) {
 
     await configService.atualizarLote(body);
 
-    console.log(`[admin] ${body.length} configuração(ões) atualizada(s) por ${req.auth?.user?.nome_completo}`);
-    res.json({ success: true, message: `${body.length} configuração(ões) salva(s) com sucesso.` });
+    console.log(`[admin] ${body.length} ${body.length === 1 ? 'configuração atualizada' : 'configurações atualizadas'} por ${req.auth?.user?.nome_completo}`);
+    res.json({ success: true, message: `${body.length} ${body.length === 1 ? 'configuração salva' : 'configurações salvas'} com sucesso.` });
   } catch (err) {
     responderErro(res, err, 'Erro ao atualizar configurações.');
   }

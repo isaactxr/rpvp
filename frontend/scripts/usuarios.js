@@ -401,7 +401,7 @@ function renderListaSetores(usuariosFiltrados) {
     button.className = 'subject-item user-item';
     button.innerHTML = `
       <strong>${escapeHtml(setor)}</strong>
-      <span>${usuarios.length} usuário(s)</span>
+      <span>${usuarios.length} ${usuarios.length === 1 ? 'usuário' : 'usuários'}</span>
     `;
     button.addEventListener('click', () => {
       state.colecaoSetorAtual = setor;
@@ -488,7 +488,7 @@ function atualizarEstadoDropzone() {
 
   const totalArquivos = colecaoFotosInputEl.files?.length || 0;
   dropzoneLabelEl.querySelector('span').textContent = totalArquivos > 0
-    ? `${totalArquivos} arquivo(s) pronto(s) para envio.`
+    ? `${totalArquivos} ${totalArquivos === 1 ? 'arquivo pronto' : 'arquivos prontos'} para envio.`
     : 'Envie novas fotos para a coleção facial do usuário selecionado.';
 }
 
@@ -609,7 +609,10 @@ async function carregarColecaoFacial(usuario) {
   try {
     const json = await window.Auth.apiJson(`/usuarios/${usuario.id}/face-collection`);
     state.colecaoFaces = Array.isArray(json?.data) ? json.data : [];
-    colecaoStatusEl.textContent = `${state.colecaoFaces.length} face(s) cadastrada(s).`;
+    const totalFotos = state.colecaoFaces.length;
+    colecaoStatusEl.textContent = totalFotos === 0
+      ? 'Nenhuma foto cadastrada.'
+      : `${totalFotos} ${totalFotos === 1 ? 'foto cadastrada' : 'fotos cadastradas'}.`;
     atualizarEstadoDropzone();
     renderColecaoFaces();
     renderPainelUsuarioSelecionado();
@@ -662,7 +665,10 @@ async function carregarUsuarios() {
     }
 
     renderSubjectsList();
-    usuariosStatusEl.textContent = `${state.usuarios.length} usuário(s) carregado(s).`;
+    const totalUsuarios = state.usuarios.length;
+    usuariosStatusEl.textContent = totalUsuarios === 0
+      ? 'Nenhum usuário encontrado.'
+      : `${totalUsuarios} ${totalUsuarios === 1 ? 'usuário encontrado' : 'usuários encontrados'}.`;
   } catch (err) {
     console.error('[usuarios] erro ao carregar:', err);
     subjectsListEl.innerHTML = '<p class="muted-text">Falha ao carregar setores.</p>';
@@ -892,7 +898,7 @@ usuarioForm?.addEventListener('submit', async (event) => {
 
     const totalFotos = Number(json?.faceRecognition?.fotosEnviadas || json?.totalFotos || json?.faces?.length || 0);
     usuariosStatusEl.textContent = totalFotos > 0
-      ? `Usuário criado e ${totalFotos} foto(s) cadastrada(s).`
+      ? `Usuário criado com ${totalFotos} ${totalFotos === 1 ? 'foto cadastrada' : 'fotos cadastradas'}.`
       : (json?.message || 'Usuário criado com sucesso.');
 
     fecharModalCadastro();

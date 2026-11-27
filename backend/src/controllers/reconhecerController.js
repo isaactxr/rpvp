@@ -539,7 +539,7 @@ async function importarUsuarios(req, res) {
     res.json({
       success: true,
       data: resultado,
-      message: `Importacao concluida: ${resultado.criados} criado(s), ${resultado.atualizados} atualizado(s), ${resultado.faces} face(s).`,
+      message: `Importação concluída: ${resultado.criados} ${resultado.criados === 1 ? 'cadastro criado' : 'cadastros criados'}, ${resultado.atualizados} ${resultado.atualizados === 1 ? 'cadastro atualizado' : 'cadastros atualizados'} e ${resultado.faces} ${resultado.faces === 1 ? 'foto importada' : 'fotos importadas'}.`,
     });
   } catch (err) {
     responderErro(res, err, 'Erro ao importar usuarios.');
@@ -663,7 +663,7 @@ async function adicionarFotosColecaoUsuario(req, res) {
       success: true,
       total: imagens.length,
       data: imagens,
-      message: `${imagens.length} foto(s) cadastrada(s).`,
+      message: `${imagens.length} ${imagens.length === 1 ? 'foto cadastrada' : 'fotos cadastradas'}.`,
     });
   } catch (err) {
     responderErro(res, err, 'Erro ao adicionar fotos na coleção facial.');

@@ -217,6 +217,11 @@ function mensagemSessoesAbertas(total) {
   return `${total} sessões abertas no momento`;
 }
 
+function mensagemSessoesEncerradas(total) {
+  if (total === 0) return 'Nenhuma sessão encerrada para os filtros selecionados';
+  return `${total} ${total === 1 ? 'sessão encerrada' : 'sessões encerradas'} para os filtros selecionados`;
+}
+
 function renderSessoesAtivas() {
   if (!sessoesAtivasListaEl) return;
 
@@ -225,7 +230,7 @@ function renderSessoesAtivas() {
     const mensagem = document.createElement('span');
     mensagem.className = 'muted-text';
     mensagem.textContent = mostrarEncerradasHojeChk?.checked
-      ? 'Nenhuma sessão encerrada para os filtros selecionados'
+      ? mensagemSessoesEncerradas(0)
       : mensagemSessoesAbertas(0);
     sessoesAtivasListaEl.appendChild(mensagem);
     return;
@@ -261,7 +266,7 @@ async function carregarSessoesAtivas() {
   renderSessoesAtivas();
   if (sessaoStatusEl) {
     sessaoStatusEl.textContent = mostrarEncerradas
-      ? `${state.sessoesAtivas.length} sessão(ões) encerrada(s) no filtro selecionado.`
+      ? mensagemSessoesEncerradas(state.sessoesAtivas.length)
       : mensagemSessoesAbertas(state.sessoesAtivas.length);
   }
 }
@@ -271,7 +276,7 @@ async function aplicarFiltrosEncerradasComEstadoAtual() {
   state.sessoesAtivas = filtrarSessoesEncerradas(state.sessoesBase);
   renderSessoesAtivas();
   if (sessaoStatusEl) {
-    sessaoStatusEl.textContent = `${state.sessoesAtivas.length} sessão(ões) encerrada(s) no filtro selecionado.`;
+    sessaoStatusEl.textContent = mensagemSessoesEncerradas(state.sessoesAtivas.length);
   }
 }
 

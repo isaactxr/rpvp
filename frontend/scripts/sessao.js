@@ -506,7 +506,7 @@ function abrirAbaPlaceholderFotos() {
   </style>
 </head>
 <body>
-  <p>Carregando foto(s)...</p>
+  <p>Carregando fotos...</p>
 </body>
 </html>`);
   documento.close();
@@ -661,7 +661,7 @@ async function carregarAcompanhamento() {
           <td><span class="${statusClass(item.status)}">${statusLabel(item.status)}</span></td>
           <td class="mono">${formatarDataHora(item.check_in_em)}</td>
           <td class="mono">${formatarDataHora(item.check_out_em)}</td>
-          <td>${possuiFotos ? '<button type="button" class="ghost-btn btn-ver-fotos">Ver foto(s)</button>' : 'Sem foto'}</td>
+          <td>${possuiFotos ? '<button type="button" class="ghost-btn btn-ver-fotos">Ver fotos</button>' : 'Sem foto'}</td>
         `;
 
         const btnVerFotos = tr.querySelector('.btn-ver-fotos');
@@ -681,7 +681,9 @@ async function carregarAcompanhamento() {
     }
 
     if (DOM.acompanhamentoStatus) {
-      DOM.acompanhamentoStatus.textContent = `${lista.length} registro(s) monitorado(s).`;
+      DOM.acompanhamentoStatus.textContent = lista.length === 0
+        ? 'Nenhum registro de presença'
+        : `${lista.length} ${lista.length === 1 ? 'registro de presença' : 'registros de presença'}`;
     }
   } catch (err) {
     renderAcompanhamentoVazio('Falha ao carregar acompanhamento.');
