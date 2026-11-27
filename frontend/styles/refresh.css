@@ -320,7 +320,12 @@ body[data-layout='internal'] .status-bar {
 }
 body[data-layout='internal'] .debug-panel { color: var(--muted); }
 body[data-layout='internal'] #eyeDebugDetails { display: block; margin-top: 0.35rem; }
-body[data-layout='internal'] .eye-debug-toggle { grid-column: 1 / -1; gap: 1rem; }
+body[data-layout='internal'] .eye-debug-toggle {
+  grid-column: 1 / -1;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+}
 
 body[data-layout='internal'] #sessaoFaceCard .video-wrapper {
   max-height: 62svh;
