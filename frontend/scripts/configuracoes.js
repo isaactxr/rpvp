@@ -47,7 +47,7 @@ function lerParametrosPreview() {
   const earAberto = toNumber(getEl('ear_aberto')?.value, 0.25);
   const areaMinima = toNumber(getEl('area_minima_rosto')?.value, 0.08);
   const limiar = toNumber(getEl('limiar_similaridade')?.value, 0.60);
-  const framesFechado = toNumber(getEl('frames_fechado_min')?.value, 2);
+  const framesFechado = toNumber(getEl('frames_fechado_min')?.value, 1);
   const framesAberto = toNumber(getEl('frames_aberto_min')?.value, 2);
 
   return {

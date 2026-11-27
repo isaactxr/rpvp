@@ -56,7 +56,7 @@ const DEFAULTS = [
   },
   {
     chave: 'frames_fechado_min',
-    valor: '2',
+    valor: '1',
     tipo: 'integer',
     descricao: 'Frames consecutivos com EAR fechado para validar o estado',
   },
@@ -65,6 +65,12 @@ const DEFAULTS = [
     valor: '2',
     tipo: 'integer',
     descricao: 'Frames consecutivos com EAR aberto para validar o estado',
+  },
+  {
+    chave: 'mostrar_mascara_olhos',
+    valor: 'false',
+    tipo: 'boolean',
+    descricao: 'Exibe pontos e contornos reais dos olhos na câmera das sessões para depuração',
   },
   {
     chave: 'atraso_pos_piscada_ms',
@@ -93,6 +99,7 @@ const CHAVES_PUBLICAS = new Set([
   'area_minima_rosto',
   'frames_fechado_min',
   'frames_aberto_min',
+  'mostrar_mascara_olhos',
   'cooldown_entre_tentativas_ms',
   'atraso_pos_piscada_ms',
 ]);

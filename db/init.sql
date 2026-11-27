@@ -366,7 +366,7 @@ ALTER TABLE ONLY public.usuarios_faces ALTER COLUMN id SET DEFAULT nextval('publ
 
 COPY public.configuracoes (chave, valor, tipo, descricao, atualizado_em) FROM stdin;
 cooldown_entre_tentativas_ms	10000	integer	Cooldown em milissegundos entre tentativas de reconhecimento facial	2026-04-22 21:08:01.47216+00
-frames_fechado_min	2	integer	Frames consecutivos com EAR fechado para validar o estado	2026-04-22 21:08:01.47216+00
+frames_fechado_min	1	integer	Frames consecutivos com EAR fechado para validar o estado	2026-04-22 21:08:01.47216+00
 frames_aberto_min	2	integer	Frames consecutivos com EAR aberto para validar o estado	2026-04-22 21:08:01.47216+00
 atraso_pos_piscada_ms	700	integer	Atraso em milissegundos entre detectar a piscada e capturar a foto	2026-04-22 21:08:01.47216+00
 checkout_obrigatorio	false	boolean	Exige checkout facial para considerar a presença como concluída	2026-04-22 21:08:01.47216+00

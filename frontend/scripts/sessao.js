@@ -24,8 +24,11 @@ const CONFIG = {
   MARGEM_X: 0.25,
   MARGEM_Y: 0.22,
   MIN_FACE_AREA_RATIO: 0.06,
-  FRAMES_FECHADO_MIN: 2,
+  // Uma amostra fechada evita descartar piscadas curtas no processamento a ~10 FPS.
+  // A reabertura continua exigindo duas amostras antes de disparar a captura.
+  FRAMES_FECHADO_MIN: 1,
   FRAMES_ABERTO_MIN: 2,
+  MOSTRAR_MASCARA_OLHOS: false,
   FACE_MESH_INTERVAL_MS: 100,
   CONTROLE_SESSAO_TIMEOUT_MS: 15000,
   RECONHECIMENTO_TIMEOUT_MS: 20000,
@@ -72,6 +75,7 @@ const DOM = {
   statusText: document.getElementById('statusText'),
   statusBar: document.getElementById('statusBar'),
   earValue: document.getElementById('earValue'),
+  eyeDebugDetails: document.getElementById('eyeDebugDetails'),
   videoWrapper: document.getElementById('videoWrapper'),
 };
 
@@ -95,6 +99,7 @@ const state = {
   framesFechado: 0,
   framesAberto: 0,
   detectorIniciado: false,
+  overlayVisivel: false,
 };
 
 function isPortraitViewport() {
@@ -238,6 +243,7 @@ function aplicarAspectRatioDaViewport() {
 }
 
 function pararCameraAtual() {
+  desenharOverlay(null, false);
   const stream = DOM.video?.srcObject;
   if (stream && typeof stream.getTracks === 'function') {
     stream.getTracks().forEach((track) => {
@@ -369,6 +375,11 @@ function aplicarConfigPublica(data) {
     if (chave in data && typeof data[chave] === 'number') {
       CONFIG[campo] = data[chave];
     }
+  }
+  if (typeof data.mostrar_mascara_olhos === 'boolean') {
+    CONFIG.MOSTRAR_MASCARA_OLHOS = data.mostrar_mascara_olhos;
+    DOM.eyeDebugDetails?.classList.toggle('hidden', !CONFIG.MOSTRAR_MASCARA_OLHOS);
+    if (!CONFIG.MOSTRAR_MASCARA_OLHOS) desenharOverlay(null, false);
   }
 }
 
@@ -726,11 +737,26 @@ function rostoEstaCentralizado(landmarks) {
   );
 }
 
-function toPixel(lm) {
+function obterGeometriaOverlay() {
+  const largura = DOM.canvas.width;
+  const altura = DOM.canvas.height;
+  const videoW = DOM.video.videoWidth || largura;
+  const videoH = DOM.video.videoHeight || altura;
+  const cover = getComputedStyle(DOM.video).objectFit === 'cover';
+  const escala = cover ? Math.max(largura / videoW, altura / videoH) : Math.min(largura / videoW, altura / videoH);
+  return {
+    largura: videoW * escala,
+    altura: videoH * escala,
+    offsetX: (largura - videoW * escala) / 2,
+    offsetY: (altura - videoH * escala) / 2,
+  };
+}
+
+function toPixel(lm, geometria = obterGeometriaOverlay()) {
   const espelhar = state.cameraFacingMode !== 'environment';
   return {
-    x: (espelhar ? (1 - lm.x) : lm.x) * DOM.canvas.width,
-    y: lm.y * DOM.canvas.height,
+    x: geometria.offsetX + (espelhar ? (1 - lm.x) : lm.x) * geometria.largura,
+    y: geometria.offsetY + lm.y * geometria.altura,
   };
 }
 
@@ -853,8 +879,8 @@ async function normalizarZoomTrack(stream) {
   }
 }
 
-function desenharContornoOlhoPontilhado(landmarks, indices, cor) {
-  const pontos = indices.map((indice) => toPixel(landmarks[indice]));
+function desenharContornoOlhoPontilhado(landmarks, indices, cor, geometria) {
+  const pontos = indices.map((indice) => toPixel(landmarks[indice], geometria));
   if (pontos.length < 3) return;
 
   ctx.save();
@@ -885,7 +911,24 @@ function desenharContornoOlhoPontilhado(landmarks, indices, cor) {
 }
 
 function desenharOverlay(landmarks, valido) {
-  // Overlay dinâmico desativado a pedido do usuário.
+  if (!ctx || !DOM.canvas) return;
+  if (!CONFIG.MOSTRAR_MASCARA_OLHOS || !landmarks?.length) {
+    if (state.overlayVisivel) {
+      ctx.clearRect(0, 0, DOM.canvas.width, DOM.canvas.height);
+      state.overlayVisivel = false;
+    }
+    return;
+  }
+  const largura = Math.max(1, Math.round(DOM.video.clientWidth || DOM.video.videoWidth));
+  const altura = Math.max(1, Math.round(DOM.video.clientHeight || DOM.video.videoHeight));
+  if (DOM.canvas.width !== largura) DOM.canvas.width = largura;
+  if (DOM.canvas.height !== altura) DOM.canvas.height = altura;
+  ctx.clearRect(0, 0, largura, altura);
+  const geometria = obterGeometriaOverlay();
+  const cor = valido ? '#22c55e' : '#f59e0b';
+  desenharContornoOlhoPontilhado(landmarks, CONFIG.OLHO_ESQUERDO, cor, geometria);
+  desenharContornoOlhoPontilhado(landmarks, CONFIG.OLHO_DIREITO, cor, geometria);
+  state.overlayVisivel = true;
 }
 
 function rostoTemTamanhoMinimo(landmarks) {
@@ -978,6 +1021,8 @@ async function onRostoDetectado(results) {
   }
 
   if (!results.multiFaceLandmarks?.length) {
+    desenharOverlay(null, false);
+    if (CONFIG.MOSTRAR_MASCARA_OLHOS && DOM.eyeDebugDetails) DOM.eyeDebugDetails.textContent = 'Nenhum rosto detectado.';
     // Não apaga captura, envio ou resultado se a pessoa sair do quadro.
     // Os contadores de piscada continuam sendo reiniciados como antes.
     if (!state.processando) setStatus('Posicione seu rosto', 'info');
@@ -1006,6 +1051,9 @@ async function onRostoDetectado(results) {
   const earMed = (earEsq + earDir) / 2;
 
   DOM.earValue.textContent = earMed.toFixed(3);
+  if (CONFIG.MOSTRAR_MASCARA_OLHOS && DOM.eyeDebugDetails) {
+    DOM.eyeDebugDetails.textContent = `EAR esquerdo: ${earEsq.toFixed(3)} · direito: ${earDir.toFixed(3)} · fechado < ${CONFIG.EAR_FECHADO.toFixed(2)} · aberto > ${CONFIG.EAR_ABERTO.toFixed(2)}`;
+  }
 
   const centralizado = rostoEstaCentralizado(landmarks);
   const tamanhoOk = rostoTemTamanhoMinimo(landmarks);

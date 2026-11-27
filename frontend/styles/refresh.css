@@ -16,8 +16,9 @@ body[data-layout='internal'] {
 }
 
 body[data-layout='internal'] .layout {
-  width: min(100%, 1600px);
+  width: 100%;
   max-width: none;
+  margin: 0;
   grid-template-columns: 228px minmax(0, 1fr);
   align-items: start;
   gap: 0;
@@ -318,6 +319,8 @@ body[data-layout='internal'] .status-bar {
   -webkit-backdrop-filter: none;
 }
 body[data-layout='internal'] .debug-panel { color: var(--muted); }
+body[data-layout='internal'] #eyeDebugDetails { display: block; margin-top: 0.35rem; }
+body[data-layout='internal'] .eye-debug-toggle { grid-column: 1 / -1; gap: 1rem; }
 
 body[data-layout='internal'] #sessaoFaceCard .video-wrapper {
   max-height: 62svh;
